@@ -124,6 +124,9 @@ export function StrategistPanel({
           </button>
         )}
       </div>
+      {!readOnly && !busy && acceptedIds.length > 0 && needsBooking && !/^https?:\/\//.test(booking.trim()) && (
+        <p className="m-0 mb-3 text-right text-sm text-signal-text">Add your booking link (starting with https://) in the booking fix to re-run.</p>
+      )}
       {error && <p role="alert" className="m-0 text-sm text-signal-text">{error}</p>}
       <div className="flex flex-wrap items-start gap-4">
         <section aria-label="Strategist chat" className="flex min-h-[620px] min-w-0 flex-[2_1_380px] flex-col gap-4 rounded-[14px] bg-ink p-6 text-white lg:sticky lg:top-6">

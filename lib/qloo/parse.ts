@@ -42,6 +42,33 @@ const DINING_RE = /(specialty_dish|dish|cuisine|menu|drink|beverage)/i;
 // and crowd out the useful ones, so they are treated as noise everywhere (display and scoring).
 const STYLE_NAME_RE = /(^|[\s-])(vibes?|style|aesthetic|decor|ambiance|ambience|atmosphere)$/i;
 
+const STEM_FILLER = new Set(["like", "ish", "themed", "theme", "oriented", "inspired", "style", "styled", "setting", "environment", "interiors", "interior", "vibe", "vibes", "aesthetic", "music", "the", "a"]);
+
+/** Root word of a tag, so "Nightclub-Like", "Nightclubish" and "Nightclub-themed" share the stem "nightclub". */
+export function tagStem(name: string): string {
+  const words = name
+    .toLowerCase()
+    .split(/[^a-z0-9]+/)
+    .filter(Boolean)
+    .map((w) => (w.length > 5 && w.endsWith("ish") ? w.slice(0, -3) : w))
+    .filter((w) => !STEM_FILLER.has(w));
+  return words[0] ?? name.toLowerCase();
+}
+
+/**
+ * For display only: keep the strongest tag per stem so the tag cloud shows several ideas,
+ * not five spellings of one. Scoring still uses the full tag list.
+ */
+export function distinctTags<T extends { name: string }>(tags: T[]): T[] {
+  const seen = new Set<string>();
+  return tags.filter((t) => {
+    const k = tagStem(t.name);
+    if (seen.has(k)) return false;
+    seen.add(k);
+    return true;
+  });
+}
+
 export type TagKind = "noise" | "dining" | "taste";
 
 export function tagKind(t: { id: string; name: string; type?: string }): TagKind {

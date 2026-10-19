@@ -62,3 +62,28 @@ describe("nameScore prefixes", () => {
     expect(nameScore("natural wine", "Natural Wine")).toBeGreaterThanOrEqual(1);
   });
 });
+
+import { distinctTags } from "@/lib/qloo/parse";
+describe("distinctTags", () => {
+  it("keeps one tag per idea", () => {
+    const names = ["Nightclub-Like", "Nightclubish", "Funky Gastropub", "Nightclub-ish", "Nightclub-themed", "Club-Like Environment", "Disco-Oriented", "Disco-Bar", "Club Setting", "Cocktail bar", "Taqueria"];
+    expect(distinctTags(names.map((name) => ({ name }))).map((t) => t.name)).toEqual(["Nightclub-Like", "Funky Gastropub", "Club-Like Environment", "Disco-Oriented", "Cocktail bar", "Taqueria"]);
+  });
+});
+
+import { eventTitle } from "@/lib/agents/strategist";
+describe("eventTitle", () => {
+  it("fits the time of day", () => {
+    expect(eventTitle("brunch")).toBe("Weekend brunch");
+    expect(eventTitle("dj")).toBe("Thursday DJ night");
+    expect(eventTitle("Natural Wine")).toBe("Thursday natural wine night");
+  });
+});
+
+import { splitLift } from "@/lib/lift";
+describe("splitLift", () => {
+  it("adds up to the measured delta", () => {
+    expect(splitLift(3, [{ id: "a", estLift: 1 }, { id: "b", estLift: 1 }])).toEqual({ a: 2, b: 1 });
+    expect(splitLift(7, [{ id: "a", estLift: 5 }, { id: "b", estLift: 2 }, { id: "c", estLift: 1 }])).toEqual({ a: 4, b: 2, c: 1 });
+  });
+});

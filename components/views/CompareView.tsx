@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { SoavGauge } from "@/components/spotlit/Gauge";
 import { runLabel } from "@/lib/format";
+import { splitLift } from "@/lib/lift";
 import type { ActionDoc, RunDoc, Venue } from "@/lib/types";
 import { EmptyState, PageHeader } from "./PageHeader";
 import { PrintButton } from "./PrintButton";
@@ -30,6 +31,9 @@ export function CompareView({ venue, before, after, actions, base }: { venue: Ve
   const a = after.summary;
   const delta = Math.round(a.soav * 100) - Math.round(b.soav * 100);
   const applied = actions.filter((x) => after.appliedActionIds.includes(x.id));
+  // Older runs may not have stored the split yet, so compute the same split here.
+  const fallback = splitLift(a.wins - b.wins, applied);
+  const liftOf = (x: (typeof applied)[number]) => x.measuredLift ?? fallback[x.id] ?? 0;
   const estimated = actions.filter((x) => x.liftType === "estimated" && (x.status === "accepted" || x.status === "proposed"));
   const ratio = b.wins ? a.wins / b.wins : 0;
   const gain = a.wins - b.wins;
@@ -103,7 +107,7 @@ export function CompareView({ venue, before, after, actions, base }: { venue: Ve
             {applied.map((x) => (
               <div key={x.id} className="flex items-center gap-3 border-b border-line-soft pb-3">
                 <span className="flex-1 text-sm">{x.title}</span>
-                <span className="serif text-[26px]">{(x.measuredLift ?? 0) >= 0 ? "+" : ""}{x.measuredLift ?? 0}</span>
+                <span className="serif text-[26px]">{liftOf(x) >= 0 ? "+" : ""}{liftOf(x)}</span>
                 <span className="lab rounded-md bg-ink px-2 py-0.5 text-[10px] text-white">Measured</span>
               </div>
             ))}

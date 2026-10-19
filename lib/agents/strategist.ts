@@ -1,5 +1,6 @@
 // Growth Strategist: turns losses into ranked, evidence backed actions, applies card fixes,
 // and records measured lift after a what-if re-run with the same personas.
+import { splitLift } from "@/lib/lift";
 import { z } from "zod";
 import { db, newId } from "@/lib/store";
 import { P } from "@/lib/paths";
@@ -29,6 +30,16 @@ function countBy<T>(xs: T[], key: (x: T) => string | null) {
 
 function evidenceOf(rounds: RoundDoc[]): Evidence | null {
   return rounds.find((r) => r.affinityEvidence)?.affinityEvidence ?? null;
+}
+
+/** "Thursday DJ night", or "Weekend brunch" when the theme is a daytime one. */
+export function eventTitle(theme: string): string {
+  const t = theme
+    .split(" ")
+    .map((w) => (/^[A-Z0-9]{2,}$/.test(w) || /^dj$/i.test(w) ? w.toUpperCase() : w.toLowerCase()))
+    .join(" ");
+  if (/brunch|breakfast|coffee|lunch|bakery|cafe/i.test(t)) return /brunch/i.test(t) ? "Weekend brunch" : `Weekend ${t}`;
+  return `Thursday ${t} night`;
 }
 
 export async function generateActions(run: RunDoc, rounds: RoundDoc[]): Promise<ActionDoc[]> {
@@ -137,7 +148,7 @@ export async function generateActions(run: RunDoc, rounds: RoundDoc[]): Promise<
     actions.push({
       runId: run.id,
       kind: "event",
-      title: `Thursday ${theme.split(" ").map((w) => (/^[A-Z0-9]{2,}$/.test(w) || /^dj$/i.test(w) ? w.toUpperCase() : w.toLowerCase())).join(" ")} night`,
+      title: eventTitle(theme),
       detail: `${segName ?? "One segment"} goes to rivals on taste (${segLosses} losses). Qloo links this crowd to ${artist?.name ?? theme}. A recurring night gives agents a reason to pick you.`,
       reasonCode: "TASTE_GAP",
       segmentName: segName,
@@ -145,7 +156,7 @@ export async function generateActions(run: RunDoc, rounds: RoundDoc[]): Promise<
       evidenceLabel: artist ? `Affinity: ${artist.name}` : `Tag: ${theme}`,
       estLift: Math.max(1, Math.round(segLosses * 0.45)),
       liftType: "estimated",
-      patch: { events: [...f.events, { title: `${theme} night`, when: "Thursdays from 8pm" }] },
+      patch: { events: [...f.events, eventTitle(theme).startsWith("Weekend") ? { title: eventTitle(theme), when: "Saturdays and Sundays from 11am" } : { title: `${theme} night`, when: "Thursdays from 8pm" }] },
     });
   }
 
@@ -230,13 +241,8 @@ export async function recordMeasuredLift(run: RunDoc, venue: Venue | null) {
   if (!run.parentRunId || !run.summary || !venue) return;
   const parent = await db().get<RunDoc>(P.run(run.parentRunId));
   if (!parent?.summary) return;
-  const delta = run.summary.wins - parent.summary.wins;
   const acts = (await listActions(venue.id)).filter((a) => run.appliedActionIds.includes(a.id));
-  const total = acts.reduce((s, a) => s + a.estLift, 0) || 1;
-  let left = delta;
-  acts.forEach((a, i) => {
-    const share = i === acts.length - 1 ? left : Math.round((delta * a.estLift) / total);
-    left -= share;
-    void db().update(P.action(venue.id, a.id), { measuredLift: share });
-  });
+  const shares = splitLift(run.summary.wins - parent.summary.wins, acts);
+  // Awaited: on serverless the work can be frozen as soon as the function returns.
+  await Promise.all(acts.map((a) => db().update(P.action(venue.id, a.id), { measuredLift: shares[a.id] })));
 }

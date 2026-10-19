@@ -11,7 +11,7 @@ import {
   tastePlaces,
   tasteTags,
 } from "@/lib/qloo/endpoints";
-import { tagKind, type RawPlace } from "@/lib/qloo/parse";
+import { distinctTags, tagKind, type RawPlace } from "@/lib/qloo/parse";
 import { nameScore } from "@/lib/qloo/rank";
 import { llmObject } from "@/lib/llm";
 import { z } from "zod";
@@ -336,7 +336,7 @@ export async function buildProfile(venueId: string): Promise<TasteProfile> {
   // Hot neighbourhoods from the heatmap: top cells, named by nearest known rival or the city.
   const cells = heatR?.data ?? [];
   const profile: TasteProfile = {
-    tags: [...nonDish, ...dishes].slice(0, 20),
+    tags: distinctTags([...nonDish, ...dishes]).slice(0, 20),
     demographics: demoR?.data.bands ?? [],
     genderSkew: demoR?.data.gender ?? null,
     affinities: {
@@ -368,7 +368,7 @@ export async function buildProfile(venueId: string): Promise<TasteProfile> {
   };
   await db().update(P.venue(venueId), update);
   if (card && card.facts.tasteTags.length === 0) {
-    await saveCard(venueId, { ...card.facts, tasteTags: [...new Set(tasteOnly.map((t) => t.name))].slice(0, 8) }, card.voice, "Added Qloo taste tags");
+    await saveCard(venueId, { ...card.facts, tasteTags: distinctTags(tasteOnly).map((t) => t.name).slice(0, 8) }, card.voice, "Added Qloo taste tags");
   }
   return profile;
 }
