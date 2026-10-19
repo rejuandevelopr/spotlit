@@ -2,7 +2,7 @@
 
 **Get spotlit by agents.** AI assistants are starting to choose where people eat, drink and go out. Spotlit shows an independent venue how often agents choose it, why they pick a rival instead, and fixes it with real taste data from Qloo.
 
-Built for the Qloo Agentic Hackathon 2026. MIT licensed.
+Built for the Qloo Agentic Hackathon 2026. MIT licensed. **Live app: [getspotlit.vercel.app](https://getspotlit.vercel.app)**
 
 ![Spotlit](public/brand/halftone-spotlight-hero-1920x1080.webp)
 
@@ -10,12 +10,12 @@ Built for the Qloo Agentic Hackathon 2026. MIT licensed.
 
 | What | Where |
 | --- | --- |
-| Demo venue, no login | `https://spotlit.vercel.app/demo` |
-| Watch the arena replay | `https://spotlit.vercel.app/demo/arena` |
-| Before and after (measured lift) | `https://spotlit.vercel.app/demo/compare` |
-| Consumer concierge | `https://spotlit.vercel.app/concierge` |
-| A venue's A2A agent card | `https://spotlit.vercel.app/v/halftone-house/.well-known/agent-card.json` |
-| MCP server | `https://spotlit.vercel.app/api/mcp` |
+| Demo venue, no login | [getspotlit.vercel.app/demo](https://getspotlit.vercel.app/demo) |
+| Watch the arena replay | [getspotlit.vercel.app/demo/arena](https://getspotlit.vercel.app/demo/arena) |
+| Before and after (measured lift) | [getspotlit.vercel.app/demo/compare](https://getspotlit.vercel.app/demo/compare) |
+| Consumer concierge | [getspotlit.vercel.app/concierge](https://getspotlit.vercel.app/concierge) |
+| A venue's A2A agent card | [getspotlit.vercel.app/v/halftone-house/.well-known/agent-card.json](https://getspotlit.vercel.app/v/halftone-house/.well-known/agent-card.json) |
+| MCP server | [getspotlit.vercel.app/api/mcp](https://getspotlit.vercel.app/api/mcp) |
 
 Sign in with any Google account to get your own workspace: search Qloo for a real venue, claim it, build its Taste DNA and run the arena live.
 
@@ -163,7 +163,7 @@ Open http://localhost:3000. The demo seeds itself the first time you open `/demo
 
 1. Push the repo and import it in Vercel.
 2. Add every variable from `.env.local` under Project → Settings → Environment Variables. Leave `SPOTLIT_MOCK` and `NEXT_PUBLIC_SPOTLIT_MOCK` empty.
-3. Set `NEXT_PUBLIC_APP_URL=https://spotlit.vercel.app` (or your URL).
+3. Set `NEXT_PUBLIC_APP_URL=https://getspotlit.vercel.app` (or your URL).
 4. Deploy, then add the domain to Firebase Authorized domains.
 5. After judging starts, set `DEMO_MODE=1` so the demo is served from the Qloo cache.
 
@@ -171,12 +171,12 @@ Open http://localhost:3000. The demo seeds itself the first time you open `/demo
 
 ```bash
 # Claude Code
-claude mcp add --transport http spotlit https://spotlit.vercel.app/api/mcp
+claude mcp add --transport http spotlit https://getspotlit.vercel.app/api/mcp
 ```
 
 ```json
 // claude_desktop_config.json
-{ "mcpServers": { "spotlit": { "url": "https://spotlit.vercel.app/api/mcp" } } }
+{ "mcpServers": { "spotlit": { "url": "https://getspotlit.vercel.app/api/mcp" } } }
 ```
 
 Tools: `find_venue_for_taste`, `ask_venue`, `get_taste_dna`. Every call is logged to the venue's inbox.
@@ -184,8 +184,8 @@ Tools: `find_venue_for_taste`, `ask_venue`, `get_taste_dna`. Every call is logge
 A2A, for any venue:
 
 ```bash
-curl https://spotlit.vercel.app/v/halftone-house/.well-known/agent-card.json
-curl -X POST https://spotlit.vercel.app/v/halftone-house/a2a -H 'content-type: application/json' -d '{
+curl https://getspotlit.vercel.app/v/halftone-house/.well-known/agent-card.json
+curl -X POST https://getspotlit.vercel.app/v/halftone-house/a2a -H 'content-type: application/json' -d '{
   "jsonrpc":"2.0","id":1,"method":"message/send",
   "params":{"message":{"role":"user","messageId":"m1","parts":[{"kind":"text","text":"Table for two Friday at 9?"}]}}}'
 ```

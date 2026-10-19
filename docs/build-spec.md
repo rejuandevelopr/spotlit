@@ -2,7 +2,7 @@
 
 > Get spotlit by agents.
 > Qloo Agentic Hackathon entry. Deadline: **Oct 30, 2026, 11:45 pm ET = Oct 31, 9:45 am Bangladesh time**. Target submission: **Oct 30**.
-> Hosting: Vercel (`spotlit.vercel.app`). No custom domain.
+> Hosting: Vercel (`getspotlit.vercel.app`). No custom domain.
 > v2 (Oct 13): Firebase replaces Supabase, Google-only sign in, real accounts and venue claiming, 17 designed screens, Liquid Glass styling, and the "push to 1st place" items.
 
 This file is the single source of truth for building Spotlit. Hand it to a coding agent section by section. Anything marked **VERIFY** must be checked against live docs before coding, because APIs change. The visual source of truth is the Spotlit App Screens design canvas (section 14).
@@ -191,7 +191,7 @@ INNGEST_EVENT_KEY=
 INNGEST_SIGNING_KEY=
 
 # App
-NEXT_PUBLIC_APP_URL=https://spotlit.vercel.app
+NEXT_PUBLIC_APP_URL=https://getspotlit.vercel.app
 DEMO_CITY=New York
 DEMO_VENUE_SLUG=halftone-house
 DEMO_MODE=false        # true = serve cached Qloo responses only (judging safety net)
@@ -379,7 +379,7 @@ Shared report pages (`/r/[token]`) render on the server with the Admin SDK, so t
 5. `middleware.ts` redirects `/app/*` to `/signin` when the cookie is missing. Server layouts call `getSessionUser()` (`verifySessionCookie`, Node runtime) for the real check. API routes do the same.
 6. Sign out: `DELETE /api/session` clears the cookie, then client `signOut()`.
 
-Firebase console: enable the Google provider, add `localhost` and `spotlit.vercel.app` to Authorized domains.
+Firebase console: enable the Google provider, add `localhost` and `getspotlit.vercel.app` to Authorized domains.
 
 ### 7.2 Claiming a venue
 - `POST /api/venues/[id]/claim { role }` runs a Firestore transaction: if `ownerId` is null, set `ownerId = uid`, `isClaimed = true`, `isProxy = false`; else return `409 already_claimed`.
@@ -449,7 +449,7 @@ Tools:
 - `ask_venue({ slug, question })`: proxies to the venue agent over A2A
 - `get_taste_dna({ slug })`
 
-**Every MCP call is logged to the venue's `inbox`** (protocol `mcp`), so a call from Claude shows up live in the Inbox. README includes copy-paste config for Claude Desktop and Claude Code (`claude mcp add --transport http spotlit https://spotlit.vercel.app/api/mcp`). **VERIFY** the current command syntax.
+**Every MCP call is logged to the venue's `inbox`** (protocol `mcp`), so a call from Claude shows up live in the Inbox. README includes copy-paste config for Claude Desktop and Claude Code (`claude mcp add --transport http spotlit https://getspotlit.vercel.app/api/mcp`). **VERIFY** the current command syntax.
 
 ---
 
@@ -651,7 +651,7 @@ Spotlit and the GitLab project (Crosstalk, separate chat, deadline Oct 27) compe
 ---
 
 ## 19. Submission checklist
-- [ ] Live demo at `https://spotlit.vercel.app`, demo venue works without login
+- [ ] Live demo at `https://getspotlit.vercel.app`, demo venue works without login
 - [ ] Google sign in works for any account (test with a fresh Google account)
 - [ ] Public GitHub repo, MIT `LICENSE` visible in About
 - [ ] README per section 16 item 3, plus `.env.example` and testing instructions
@@ -668,7 +668,7 @@ Spotlit and the GitLab project (Crosstalk, separate chat, deadline Oct 27) compe
 2. Gemini API key (Google AI Studio)
 3. GitHub: public `spotlit` repo with MIT license
 4. Firebase: create project, enable Google sign-in, create Firestore database, register a web app (client config), download a service account key (server env vars)
-5. Vercel: connect the repo, add env vars, add `spotlit.vercel.app` to Firebase Authorized domains
+5. Vercel: connect the repo, add env vars, add `getspotlit.vercel.app` to Firebase Authorized domains
 6. Inngest: free account, keys into env
 
 ---
