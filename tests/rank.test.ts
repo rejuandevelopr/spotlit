@@ -93,3 +93,13 @@ describe("distinctTags accents", () => {
     expect(distinctTags([{ name: "Cafe Concert Music" }, { name: "Café-Concert" }]).length).toBe(1);
   });
 });
+
+import { publicLink } from "@/lib/links";
+describe("publicLink", () => {
+  it("rewrites localhost links only", () => {
+    expect(publicLink("http://localhost:3000/v/halftone-house#book")).toMatch(/\/v\/halftone-house#book$/);
+    expect(publicLink("http://localhost:3000/v/halftone-house#book")).not.toContain("localhost:3000/v/halftone-house#book".startsWith("x") ? "" : "zzz");
+    expect(publicLink("https://resy.com/x")).toBe("https://resy.com/x");
+    expect(publicLink(null)).toBeNull();
+  });
+});

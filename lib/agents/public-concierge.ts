@@ -5,6 +5,7 @@ import { P } from "@/lib/paths";
 import { env } from "@/lib/env";
 import { searchEntities, scoreCandidates, tastePlaces, tasteTags, searchTags } from "@/lib/qloo/endpoints";
 import { askVenue } from "@/lib/a2a/client";
+import { nameScore } from "@/lib/qloo/rank";
 import type { A2AMeta } from "@/lib/a2a/server";
 import { combineAffinity, constraintFit, heuristicQuality, score, tagOverlap, WEIGHTS } from "@/lib/arena/scoring";
 import { ensureVenueTags, latestCard, venueForPlace } from "@/lib/venues";
@@ -61,19 +62,33 @@ export async function runConcierge(q: ConciergeQuery, meta: A2AMeta): Promise<Co
   const city = intent.city && /brooklyn|williamsburg|greenpoint|bushwick|manhattan|nyc/i.test(intent.city) ? "New York" : intent.city ?? env.demoCity;
   const evidence: Evidence[] = [];
 
-  // 1. Resolve tastes to Qloo entities (or tags when nothing matches).
+  // 1. Resolve tastes. Names like "Japanese Breakfast" become Qloo entities. Vibes like "vinyl" or
+  // "natural wine" only count as an entity when the name really matches, otherwise they become Qloo tags.
   const resolved: EntityRef[] = [];
+  let tagSignal: string[] = [];
   for (const like of intent.likes) {
     try {
-      const r = await searchEntities(like, ["urn:entity:artist", "urn:entity:movie", "urn:entity:brand", "urn:entity:tv_show"], {}, 1);
+      const r = await searchEntities(like, ["urn:entity:artist", "urn:entity:movie", "urn:entity:brand", "urn:entity:tv_show"], {}, 3);
       evidence.push(r.evidence);
-      if (r.data[0]) resolved.push({ ...r.data[0], type: r.data[0].type.replace("urn:entity:", "") });
+      const hit = r.data.find((e) => nameScore(like, e.name) >= 1);
+      if (hit) {
+        resolved.push({ ...hit, type: hit.type.replace("urn:entity:", "") });
+        continue;
+      }
+    } catch {
+      // Fall through to tags.
+    }
+    try {
+      const t = await searchTags(like, {}, 5);
+      evidence.push(t.evidence);
+      const best = t.data.find((x) => nameScore(like, x.name) >= 0.5) ?? null;
+      if (best) tagSignal.push(best.id);
     } catch {
       // Unresolved likes are simply skipped.
     }
   }
-  let tagSignal: string[] = [];
-  if (!resolved.length) {
+  tagSignal = [...new Set(tagSignal)].slice(0, 6);
+  if (!resolved.length && !tagSignal.length) {
     const words = [intent.occasion, ...(q.text ?? "").split(/[,.]/)].filter(Boolean).slice(0, 3) as string[];
     for (const w of words) {
       try {
@@ -85,7 +100,7 @@ export async function runConcierge(q: ConciergeQuery, meta: A2AMeta): Promise<Co
     }
     tagSignal = [...new Set(tagSignal)].slice(0, 4);
   }
-  const signal = resolved.length ? { entities: resolved.map((r) => r.id) } : { tags: tagSignal };
+  const signal = { entities: resolved.length ? resolved.map((r) => r.id) : undefined, tags: tagSignal.length ? tagSignal : undefined };
 
   // 2. Candidates: venues Spotlit knows in the city, topped up with Qloo taste matches.
   let venues = (await db().list<Venue>(P.venues(), { where: [["city", "==", city]], limit: 60 })).filter((v) => v.latestCardVersion > 0);
@@ -135,9 +150,12 @@ export async function runConcierge(q: ConciergeQuery, meta: A2AMeta): Promise<Co
   const A = combineAffinity(tagScores, ent);
 
   // 4. Ask the top four venue agents over A2A.
+  // When the request names a neighbourhood, venues there are asked first.
+  const wanted = `${q.city ?? ""} ${q.text ?? ""}`.toLowerCase();
+  const inArea = (v: Venue) => !!v.neighborhood && wanted.includes(v.neighborhood.toLowerCase());
   const top = venues
-    .map((v, i) => ({ v, A: A[i] }))
-    .sort((a, b) => b.A - a.A)
+    .map((v, i) => ({ v, A: A[i], near: inArea(v) }))
+    .sort((a, b) => Number(b.near) - Number(a.near) || b.A - a.A)
     .slice(0, 4);
   const likesText = resolved.map((r) => r.name);
   const consulted: (Consulted & { inboxId?: string })[] = await Promise.all(

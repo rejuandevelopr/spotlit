@@ -6,6 +6,7 @@ import { EvidenceLink } from "@/components/spotlit/EvidenceLink";
 import { ProxyLabel } from "@/components/spotlit/Badges";
 import { CATEGORY_LABEL, getProfile, getVenueBySlug, latestCard } from "@/lib/venues";
 import { DAYS, DAY_LABEL } from "@/lib/types";
+import { publicLink } from "@/lib/links";
 
 export const dynamic = "force-dynamic";
 
@@ -96,7 +97,7 @@ export default async function VenuePublicPage({ params }: { params: Promise<{ sl
             <span className="lab text-[11px] text-ash">Address</span>
             <span className="text-[15px] leading-relaxed">{f?.address ?? venue.address ?? venue.city}</span>
             {f?.booking && !venue.isFictional && (
-              <a href={f.booking} className="text-sm text-signal-text" rel="noreferrer" target="_blank">Book a table</a>
+              <a href={publicLink(f.booking) ?? f.booking} className="text-sm text-signal-text" rel="noreferrer" target="_blank">Book a table</a>
             )}
             {venue.isFictional && <span className="text-sm text-ash">Booking disabled: fictional demo venue</span>}
           </div>

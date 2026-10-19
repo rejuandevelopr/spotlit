@@ -2,6 +2,7 @@
 // agent card so the agent can never invent hours or prices. The LLM only writes the pitch.
 import { z } from "zod";
 import { llmObject } from "@/lib/llm";
+import { publicLink } from "@/lib/links";
 import { availabilityAt, priceFit } from "@/lib/arena/scoring";
 import { DAY_LABEL, type AgentCardDoc, type Day, type Venue, type VenueReply } from "@/lib/types";
 import type { Intent } from "./intent";
@@ -117,7 +118,8 @@ export function templatePitch(venue: Venue, card: AgentCardDoc, ask: VenueAsk, a
   return { pitch: parts.join(" "), factsUsed: [...new Set(used)] };
 }
 
-export async function venueReply(venue: Venue, card: AgentCardDoc, ask: VenueAsk, opts: { useLLM?: boolean } = {}): Promise<VenueReply> {
+export async function venueReply(venue: Venue, saved: AgentCardDoc, ask: VenueAsk, opts: { useLLM?: boolean } = {}): Promise<VenueReply> {
+  const card: AgentCardDoc = { ...saved, facts: { ...saved.facts, booking: publicLink(saved.facts.booking) } };
   const c = ask.constraints;
   const isProxy = venue.isProxy && !venue.isClaimed;
   const availability = c.day && c.time ? availabilityAt(card.facts.hours, c.day, c.time) : card.facts.hours ? "open" : "unknown";
