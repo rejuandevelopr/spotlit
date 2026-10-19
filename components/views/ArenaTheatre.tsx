@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { OMark } from "@/components/spotlit/Brand";
+import { Busy } from "@/components/spotlit/Loading";
 import { fmtClock } from "@/lib/format";
 import type { LivePayload, LiveRound } from "@/lib/live";
 
@@ -179,7 +180,7 @@ export function ArenaTheatre({ runId, initial, backHref, reportHref, mode }: Pro
               <OMark size={68} />
             </div>
             <div className="max-w-[260px] rounded-[10px] border border-[#2E2E31] bg-ink-3 px-3.5 py-2.5 text-center text-[13px] leading-normal text-fog">
-              {current ? `“${current.request}”` : complete ? "All rounds played." : "Waiting for the first persona…"}
+              {current ? `“${current.request}”` : complete ? "All rounds played." : <Busy label="Waiting for the first persona…" />}
             </div>
             <span className="lab text-[10px] text-signal">
               {current ? `Asked ${current.candidates.filter((c) => c.asked).length} venue agents over A2A` : "Starting"}

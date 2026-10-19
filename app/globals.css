@@ -327,3 +327,9 @@
     animation: none;
   }
 }
+
+/* A busy button keeps full contrast so the spinner and progress text stay readable. */
+.btn:disabled:has(.spinner) {
+  opacity: 1;
+  cursor: progress;
+}

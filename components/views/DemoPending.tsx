@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { Wordmark } from "@/components/spotlit/Brand";
+import { Spinner } from "@/components/spotlit/Spinner";
 
 export function DemoPending({ status, error, mock }: { status: string | null; error?: string; mock: boolean }) {
   const seeding = status === "seeding" || (mock && status !== "failed");
@@ -8,7 +9,14 @@ export function DemoPending({ status, error, mock }: { status: string | null; er
       {seeding && <meta httpEquiv="refresh" content="4" />}
       <Wordmark width={140} />
       <h1 className="serif m-0 max-w-[640px] text-5xl leading-none">
-        {seeding ? "Setting up the demo venue…" : "The demo venue is not ready yet."}
+        {seeding ? (
+          <span className="inline-flex items-center gap-4">
+            <Spinner size={36} className="text-signal" />
+            Setting up the demo venue…
+          </span>
+        ) : (
+          "The demo venue is not ready yet."
+        )}
       </h1>
       <p className="m-0 max-w-[560px] text-mist">
         {seeding

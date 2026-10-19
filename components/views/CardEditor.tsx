@@ -6,6 +6,8 @@ import { readinessItems, readinessScore } from "@/lib/readiness";
 import { DAYS, DAY_LABEL, type AgentCardDoc, type CardFacts, type Day, type VenueReply } from "@/lib/types";
 import { fmtDate } from "@/lib/format";
 import { normRange } from "@/lib/qloo/parse";
+import { Busy } from "@/components/spotlit/Loading";
+import { Spinner } from "@/components/spotlit/Spinner";
 
 interface Props {
   venueId: string;
@@ -121,7 +123,7 @@ export function CardEditor({ venueId, venueName, slug, claimed, card, versions, 
           <button type="button" className="btn btn-sm btn-line bg-white" onClick={() => setShowVersions((s) => !s)}>Version history</button>
           {!readOnly && (
             <button type="button" className="btn btn-sm btn-ink" onClick={publish} disabled={!dirty || saving}>
-              {saving ? "Publishing…" : `Publish v${card.version + 1}`}
+              {saving ? <Busy label="Publishing…" /> : `Publish v${card.version + 1}`}
             </button>
           )}
         </div>
@@ -314,7 +316,7 @@ function TestChat({ venueId, disabled, dirty }: { venueId: string; disabled: boo
         <label htmlFor="test-msg" className="sr-only">Message your agent</label>
         <input id="test-msg" disabled={disabled} value={text} onChange={(e) => setText(e.target.value)} placeholder="Ask like a concierge would" className="min-h-10 min-w-0 flex-1 border-0 text-sm outline-none" />
         <button type="submit" disabled={disabled || busy} aria-label="Send" className="flex h-10 w-10 items-center justify-center rounded-lg bg-ink text-white">
-          {busy ? "…" : "→"}
+          {busy ? <Spinner size={16} /> : "→"}
         </button>
       </form>
     </section>

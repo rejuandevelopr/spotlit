@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { EvidenceLink } from "@/components/spotlit/EvidenceLink";
 import type { Evidence } from "@/lib/types";
+import { Busy, LoadingSteps } from "@/components/spotlit/Loading";
 
 interface Result {
   qlooId: string;
@@ -138,7 +139,7 @@ export function FindVenue({ defaultCity }: { defaultCity: string }) {
         </div>
         <div className="flex flex-wrap justify-between gap-2">
           <span className="lab text-[11px] text-ash">
-            {loading ? "Searching Qloo…" : results ? `${results.length} match${results.length === 1 ? "" : "es"} from Qloo` : "Type at least two letters"}
+            {loading ? <Busy size={12} label="Searching Qloo…" /> : results ? `${results.length} match${results.length === 1 ? "" : "es"} from Qloo` : "Type at least two letters"}
           </span>
           <EvidenceLink evidence={evidence} />
         </div>
@@ -161,7 +162,7 @@ export function FindVenue({ defaultCity }: { defaultCity: string }) {
                     {r.claimed ? " · Already claimed" : ""}
                   </span>
                 </span>
-                <span className="shrink-0 text-sm font-semibold">{busyId === r.qlooId ? "Opening…" : "This is mine →"}</span>
+                <span className="shrink-0 text-sm font-semibold">{busyId === r.qlooId ? <Busy size={14} label="Opening…" /> : "This is mine →"}</span>
               </button>
             </li>
           ))}
@@ -205,13 +206,13 @@ export function FindVenue({ defaultCity }: { defaultCity: string }) {
           </div>
         </fieldset>
         <div className="flex flex-col gap-2.5 border-t border-line-dark pt-4">
-          <span className="lab text-[10px] text-smoke">{mapping ? "Mapping to Qloo tags…" : "Mapped to Qloo tags"}</span>
+          <span className="lab text-[10px] text-smoke">{mapping ? <Busy size={12} label="Mapping to Qloo tags…" /> : "Mapped to Qloo tags"}</span>
           <div className="flex flex-wrap gap-1.5 text-[13px]">
             {mapped.length ? mapped.map((t) => <span key={t.id} className="rounded-full border border-line-dark-2 px-2.5 py-1">{t.name}</span>) : <span className="text-smoke">Tags appear as you type</span>}
           </div>
         </div>
         <button type="submit" disabled={creating || !name || !kind} className="btn btn-signal">
-          {creating ? "Creating…" : "Build my Taste DNA"}
+          {creating ? <LoadingSteps every={3500} steps={["Creating your venue…", "Saving your Qloo taste tags…", "Preparing your agent card…"]} /> : "Build my Taste DNA"}
         </button>
       </form>
     </div>

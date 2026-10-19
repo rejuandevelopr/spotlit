@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { ArrowRight } from "@/components/spotlit/Brand";
+import { Busy, LoadingSteps } from "@/components/spotlit/Loading";
 
 const ROLES = [
   { id: "owner", name: "Owner", desc: "I own or co own the venue" },
@@ -33,7 +34,7 @@ export function ClaimForm({ venueId, venueName, claimedByOther }: { venueId: str
         return;
       }
       if (!r.ok) throw new Error(j.error);
-      setStage("Building your Taste DNA and finding rivals with Qloo…");
+      setStage("dna");
       const p = await fetch(`/api/venues/${venueId}/profile`, { method: "POST" });
       if (!p.ok) {
         const pj = await p.json().catch(() => ({}));
@@ -107,7 +108,24 @@ export function ClaimForm({ venueId, venueName, claimedByOther }: { venueId: str
           <div className="flex flex-wrap items-center justify-between gap-2.5">
             <Link href="/app/new" className="text-sm font-semibold text-ink">Not my venue</Link>
             <button type="submit" disabled={!ok || !!stage} className="btn btn-signal" style={{ minHeight: 52 }}>
-              {stage ?? (
+              {stage ? (
+                stage === "dna" ? (
+                  <LoadingSteps
+                    every={6000}
+                    steps={[
+                      "Claiming your venue…",
+                      "Reading your taste tags from Qloo…",
+                      "Mapping your crowd by age and gender…",
+                      "Finding artists, films and brands your crowd loves…",
+                      "Drawing where your crowd is on the heatmap…",
+                      "Finding taste rivals nearby…",
+                      "Almost there…",
+                    ]}
+                  />
+                ) : (
+                  <Busy label={stage} />
+                )
+              ) : (
                 <>
                   Claim and build Taste DNA <ArrowRight />
                 </>

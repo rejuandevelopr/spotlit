@@ -2,6 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import { LoadingSteps } from "@/components/spotlit/Loading";
 
 export function StartRunButton({ venueId, options, disabled }: { venueId: string; options: number[]; disabled?: string | null }) {
   const router = useRouter();
@@ -37,7 +38,14 @@ export function StartRunButton({ venueId, options, disabled }: { venueId: string
       {disabled && <p className="m-0 text-sm text-signal-text">{disabled}</p>}
       {error && <p role="alert" className="m-0 text-sm text-signal-text">{error}</p>}
       <button type="button" onClick={start} disabled={busy || !!disabled} className="btn btn-signal self-start">
-        {busy ? "Building personas with Qloo…" : "Start the arena"}
+        {busy ? (
+          <LoadingSteps
+            every={5000}
+            steps={["Reading city taste segments from Qloo…", "Building personas from real artists and films…", "Asking rival venues for their agent cards…", "Starting the arena…"]}
+          />
+        ) : (
+          "Start the arena"
+        )}
       </button>
     </div>
   );

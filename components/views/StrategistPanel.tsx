@@ -5,6 +5,7 @@ import { useRef, useState } from "react";
 import { OMark } from "@/components/spotlit/Brand";
 import { EvidenceLink } from "@/components/spotlit/EvidenceLink";
 import type { ActionDoc, Segment } from "@/lib/types";
+import { LoadingSteps } from "@/components/spotlit/Loading";
 
 const KIND: Record<ActionDoc["kind"], string> = {
   card_fact: "Card fact",
@@ -119,7 +120,7 @@ export function StrategistPanel({
         </div>
         {!readOnly && (
           <button type="button" onClick={rerun} disabled={busy || !acceptedIds.length || (needsBooking && !/^https?:\/\//.test(booking.trim()))} className="btn btn-signal">
-            {busy ? "Applying fixes…" : measuredCount ? `Re-run with ${measuredCount} accepted` : "Save accepted ideas"}
+            {busy ? <LoadingSteps every={4000} steps={["Applying fixes to your agent card…", "Publishing the new card version…", "Starting the what if run…"]} /> : measuredCount ? `Re-run with ${measuredCount} accepted` : "Save accepted ideas"}
           </button>
         )}
       </div>
@@ -137,7 +138,7 @@ export function StrategistPanel({
                   {m.content}
                 </div>
               ) : (
-                <ChatBlock key={i} text={m.content || (streaming ? "…" : "")} segments={segments} />
+                <ChatBlock key={i} text={m.content || (streaming ? "Thinking…" : "")} segments={segments} />
               ),
             )}
             <div ref={endRef} />

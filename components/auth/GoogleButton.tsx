@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { GoogleIcon } from "@/components/spotlit/Brand";
 import { firebaseClientConfigured, googleIdToken } from "@/lib/firebase/client";
+import { Busy } from "@/components/spotlit/Loading";
 
 const MOCK = process.env.NEXT_PUBLIC_SPOTLIT_MOCK === "1" || process.env.NEXT_PUBLIC_SPOTLIT_MOCK === "true";
 
@@ -40,7 +41,7 @@ export function GoogleButton({ next }: { next?: string }) {
         <span aria-hidden="true" className="inline-flex h-[26px] w-[26px] items-center justify-center rounded-full bg-white">
           <GoogleIcon size={16} />
         </span>
-        {busy ? "Signing in…" : "Continue with Google"}
+        {busy ? <Busy label="Signing in…" /> : "Continue with Google"}
       </button>
       {MOCK && <p className="lab text-center text-[10px] text-ash">Mock mode: signs you in as a local test owner</p>}
       {error && (

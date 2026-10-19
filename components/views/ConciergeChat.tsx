@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useState } from "react";
 import { OMark } from "@/components/spotlit/Brand";
 import type { ConciergeResult } from "@/lib/agents/public-concierge";
+import { LoadingSteps } from "@/components/spotlit/Loading";
 
 const CHIPS = ["Somewhere chill for a date Friday around 9, we love Khruangbin and natural wine, nothing too pricey", "Group of 6 Saturday at 8, we're into house music", "Solo drink after work Wednesday, love Alice Coltrane", "Live jazz Thursday at 9 for two, $$"];
 
@@ -47,7 +48,7 @@ export function ConciergeChat({ initial }: { initial: string }) {
               <div className="flex max-w-[640px] items-start gap-3">
                 <OMark size={28} className="mt-1 shrink-0" />
                 <div className="flex flex-col gap-3">
-                  {!t.r && !t.error && <p className="m-0 text-[15px] text-fog"><span className="pulse-dot">●</span> Resolving your tastes with Qloo and asking venue agents over A2A…</p>}
+                  {!t.r && !t.error && <p className="m-0 text-[15px] text-fog"><LoadingSteps every={4500} steps={["Resolving your tastes with Qloo…", "Finding venues your taste matches…", "Asking venue agents over A2A…", "Comparing their replies…"]} /></p>}
                   {t.error && <p className="m-0 text-[15px] text-signal">{t.error}</p>}
                   {t.r && <Answer r={t.r} />}
                 </div>

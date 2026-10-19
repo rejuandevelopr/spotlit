@@ -2,6 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import { Busy, LoadingSteps } from "@/components/spotlit/Loading";
 
 export function BuildDnaButton({ venueId, label = "Build Taste DNA", subtle = false }: { venueId: string; label?: string; subtle?: boolean }) {
   const router = useRouter();
@@ -23,7 +24,14 @@ export function BuildDnaButton({ venueId, label = "Build Taste DNA", subtle = fa
           router.refresh();
         }}
       >
-        {busy ? "Asking Qloo…" : label}
+        {busy ? (
+          <LoadingSteps
+            every={6000}
+            steps={["Reading taste tags from Qloo…", "Mapping your crowd…", "Finding artists, films and brands…", "Drawing the heatmap…", "Finding taste rivals…", "Almost there…"]}
+          />
+        ) : (
+          label
+        )}
       </button>
       {error && (
         <span role="alert" className="absolute right-0 top-full z-10 mt-2 w-max max-w-[min(360px,80vw)] break-words text-right text-sm text-signal-text">
@@ -55,7 +63,7 @@ export function ShareButton({ runId }: { runId: string }) {
           }
         }}
       >
-        {url ? "Link copied" : busy ? "Creating…" : "Share report"}
+        {url ? "Link copied" : busy ? <Busy label="Creating link…" /> : "Share report"}
       </button>
       {url && (
         <a href={url} target="_blank" rel="noreferrer" className="max-w-[220px] truncate text-[13px] text-signal-text">
