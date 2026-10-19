@@ -103,9 +103,9 @@ async function callTool(name: string, args: unknown, agent: string) {
     const lines = top.map((t) => `${t.rank}. ${t.name}${t.claimed ? "" : " (unclaimed, public data only)"} score ${t.score.toFixed(2)}. ${t.pitch ?? ""}`);
     return text(
       top.length
-        ? `Top venues by Qloo taste match (weights: taste 0.6, fit 0.25, answer 0.15):\n${lines.join("\n")}`
+        ? `Matched to Qloo: ${[...r.resolvedLikes.map((x) => x.name), ...r.resolvedTags.map((x) => `${x.name} (tag)`)].join(", ") || "no specific tastes"}.\nTop venues by Qloo taste match (weights: taste 0.6, fit 0.25, answer 0.15):\n${lines.join("\n")}`
         : r.message,
-      { results: top, resolvedLikes: r.resolvedLikes.map((x) => x.name) },
+      { results: top, resolvedLikes: r.resolvedLikes.map((x) => x.name), resolvedTasteTags: r.resolvedTags.map((x) => x.name) },
     );
   }
   if (name === "ask_venue") {

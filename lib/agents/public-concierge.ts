@@ -40,12 +40,28 @@ export interface Consulted {
 export interface ConciergeResult {
   intent: Intent;
   resolvedLikes: EntityRef[];
+  resolvedTags: { id: string; name: string }[];
   recommendation: Consulted | null;
   consulted: Consulted[];
   reason: string;
   weights: typeof WEIGHTS;
   evidence: Evidence[];
   message: string;
+}
+
+// Words that describe a place, a drink or a mood rather than an artist, film or brand.
+const VENUE_WORDS =
+  /\b(vinyl|records?|hi ?fi|listening|bar|pub|wine|natural|cocktails?|beer|craft|sake|mezcal|tequila|whisk(e)?y|coffee|tea|dim|candle\w*|cozy|cosy|quiet|loud|rooftop|patio|garden|jazz club|live music|dj|dance|karaoke|tacos?|pizza|ramen|sushi|tapas|oysters?|brunch|small plates|late night|speakeasy|dive|lounge|neon|intimate|romantic)\b/i;
+
+/** Same words both ways, so "Williamsburg" does not resolve to "Williamsburg Quartet". */
+function sameName(a: string, b: string) {
+  return nameScore(a, b) >= 1 && nameScore(b, a) >= 1;
+}
+
+/** True when a "like" is really a place, such as the neighbourhood the person asked for. */
+function isPlaceLike(like: string, placeWords: string) {
+  const l = like.toLowerCase();
+  return l.length > 2 && (placeWords.includes(l) || /\b(brooklyn|manhattan|williamsburg|bushwick|greenpoint|queens|soho|tribeca|harlem|chelsea|west village|east village|lower east side)\b/i.test(l));
 }
 
 export async function runConcierge(q: ConciergeQuery, meta: A2AMeta): Promise<ConciergeResult> {
@@ -62,29 +78,48 @@ export async function runConcierge(q: ConciergeQuery, meta: A2AMeta): Promise<Co
   const city = intent.city && /brooklyn|williamsburg|greenpoint|bushwick|manhattan|nyc/i.test(intent.city) ? "New York" : intent.city ?? env.demoCity;
   const evidence: Evidence[] = [];
 
-  // 1. Resolve tastes. Names like "Japanese Breakfast" become Qloo entities. Vibes like "vinyl" or
-  // "natural wine" only count as an entity when the name really matches, otherwise they become Qloo tags.
+  // 1. Resolve tastes. Venue words ("vinyl", "natural wine", "dim listening bar") become Qloo tags.
+  // Names ("Japanese Breakfast") become Qloo entities only on an exact name match. Place names are skipped.
   const resolved: EntityRef[] = [];
+  const resolvedTags: { id: string; name: string }[] = [];
   let tagSignal: string[] = [];
-  for (const like of intent.likes) {
-    try {
-      const r = await searchEntities(like, ["urn:entity:artist", "urn:entity:movie", "urn:entity:brand", "urn:entity:tv_show"], {}, 3);
-      evidence.push(r.evidence);
-      const hit = r.data.find((e) => nameScore(like, e.name) >= 1);
-      if (hit) {
-        resolved.push({ ...hit, type: hit.type.replace("urn:entity:", "") });
-        continue;
+  const placeWords = `${q.city ?? ""} ${intent.city ?? ""} ${city}`.toLowerCase();
+  for (const raw of intent.likes) {
+    const like = raw.trim();
+    if (!like || isPlaceLike(like, placeWords)) continue;
+    const asTag = async () => {
+      try {
+        const t = await searchTags(like, {}, 8);
+        evidence.push(t.evidence);
+        const best = t.data.find((x) => nameScore(like, x.name) >= 1) ?? t.data.find((x) => nameScore(like, x.name) >= 0.5) ?? null;
+        if (best) {
+          tagSignal.push(best.id);
+          resolvedTags.push({ id: best.id, name: best.name });
+          return true;
+        }
+      } catch {
+        // Ignore and try the other route.
       }
-    } catch {
-      // Fall through to tags.
-    }
-    try {
-      const t = await searchTags(like, {}, 5);
-      evidence.push(t.evidence);
-      const best = t.data.find((x) => nameScore(like, x.name) >= 0.5) ?? null;
-      if (best) tagSignal.push(best.id);
-    } catch {
-      // Unresolved likes are simply skipped.
+      return false;
+    };
+    const asEntity = async () => {
+      try {
+        const r = await searchEntities(like, ["urn:entity:artist", "urn:entity:movie", "urn:entity:brand", "urn:entity:tv_show"], {}, 3);
+        evidence.push(r.evidence);
+        const hit = r.data.find((e) => sameName(like, e.name));
+        if (hit) {
+          resolved.push({ ...hit, type: hit.type.replace("urn:entity:", "") });
+          return true;
+        }
+      } catch {
+        // Ignore and try the other route.
+      }
+      return false;
+    };
+    if (VENUE_WORDS.test(like)) {
+      if (!(await asTag())) await asEntity();
+    } else if (!(await asEntity())) {
+      await asTag();
     }
   }
   tagSignal = [...new Set(tagSignal)].slice(0, 6);
@@ -115,7 +150,7 @@ export async function runConcierge(q: ConciergeQuery, meta: A2AMeta): Promise<Co
   }
   venues = [...new Map(venues.map((v) => [v.id, v])).values()];
   if (!venues.length) {
-    return { intent, resolvedLikes: resolved, recommendation: null, consulted: [], reason: "", weights: WEIGHTS, evidence, message: `I could not find venues in ${city} yet.` };
+    return { intent, resolvedLikes: resolved, resolvedTags, recommendation: null, consulted: [], reason: "", weights: WEIGHTS, evidence, message: `I could not find venues in ${city} yet.` };
   }
 
   // 3. Taste scores from Qloo, same method as the arena.
@@ -129,6 +164,11 @@ export async function runConcierge(q: ConciergeQuery, meta: A2AMeta): Promise<Co
         personaAff.set(t.id, a);
         personaAff.set(t.name.toLowerCase(), a);
       });
+      // The tags the person asked for count fully, even if Qloo's related list leaves them out.
+      for (const t of resolvedTags) {
+        personaAff.set(t.id, 1);
+        personaAff.set(t.name.toLowerCase(), 1);
+      }
     } catch {
       /* ignore */
     }
@@ -209,6 +249,7 @@ export async function runConcierge(q: ConciergeQuery, meta: A2AMeta): Promise<Co
   return {
     intent,
     resolvedLikes: resolved,
+    resolvedTags,
     recommendation: rec,
     consulted: consulted.map(({ inboxId: _i, ...c }) => c),
     reason,
