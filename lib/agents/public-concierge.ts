@@ -49,6 +49,8 @@ export interface ConciergeResult {
   message: string;
 }
 
+const RETAIL_TAG = /\b(shop|store|flooring|sign|signs|supply|supplies|repair|rental|wholesale|printing|manufactur\w*|installation|contractor)\b/i;
+
 // Words that describe a place, a drink or a mood rather than an artist, film or brand.
 const VENUE_WORDS =
   /\b(vinyl|records?|hi ?fi|listening|bar|pub|wine|natural|cocktails?|beer|craft|sake|mezcal|tequila|whisk(e)?y|coffee|tea|dim|candle\w*|cozy|cosy|quiet|loud|rooftop|patio|garden|jazz club|live music|dj|dance|karaoke|tacos?|pizza|ramen|sushi|tapas|oysters?|brunch|small plates|late night|speakeasy|dive|lounge|neon|intimate|romantic)\b/i;
@@ -82,6 +84,7 @@ export async function runConcierge(q: ConciergeQuery, meta: A2AMeta): Promise<Co
   // Names ("Japanese Breakfast") become Qloo entities only on an exact name match. Place names are skipped.
   const resolved: EntityRef[] = [];
   const resolvedTags: { id: string; name: string }[] = [];
+  const vibePhrases: string[] = [];
   let tagSignal: string[] = [];
   const placeWords = `${q.city ?? ""} ${intent.city ?? ""} ${city}`.toLowerCase();
   for (const raw of intent.likes) {
@@ -91,8 +94,13 @@ export async function runConcierge(q: ConciergeQuery, meta: A2AMeta): Promise<Co
       try {
         const t = await searchTags(like, {}, 8);
         evidence.push(t.evidence);
-        const best = t.data.find((x) => nameScore(like, x.name) >= 1) ?? t.data.find((x) => nameScore(like, x.name) >= 0.5) ?? null;
+        // Skip shop and trade tags ("Vinyl sign shop", "Vinyl Flooring") and prefer the closest name.
+        const pool = t.data.filter((x) => !RETAIL_TAG.test(x.name));
+        const extra = (x: { name: string }) => x.name.split(/[^a-zA-Z0-9]+/).filter(Boolean).length;
+        const strong = pool.filter((x) => nameScore(like, x.name) >= 1).sort((a, b) => extra(a) - extra(b));
+        const best = strong[0] ?? pool.find((x) => nameScore(like, x.name) >= 0.5) ?? null;
         if (best) {
+          vibePhrases.push(like);
           tagSignal.push(best.id);
           resolvedTags.push({ id: best.id, name: best.name });
           return true;
@@ -138,7 +146,12 @@ export async function runConcierge(q: ConciergeQuery, meta: A2AMeta): Promise<Co
   const signal = { entities: resolved.length ? resolved.map((r) => r.id) : undefined, tags: tagSignal.length ? tagSignal : undefined };
 
   // 2. Candidates: venues Spotlit knows in the city, topped up with Qloo taste matches.
-  let venues = (await db().list<Venue>(P.venues(), { where: [["city", "==", city]], limit: 60 })).filter((v) => v.latestCardVersion > 0);
+  // Claimed venues and venues in the neighbourhood the person named always make the list; others fill up to 60.
+  const wanted = `${q.city ?? ""} ${q.text ?? ""}`.toLowerCase();
+  const inArea = (v: Venue) => !!v.neighborhood && wanted.includes(v.neighborhood.toLowerCase());
+  const all = (await db().list<Venue>(P.venues(), { where: [["city", "==", city]], limit: 400 })).filter((v) => v.latestCardVersion > 0);
+  const first = all.filter((v) => v.isClaimed || inArea(v));
+  let venues = [...first, ...all.filter((v) => !first.includes(v))].slice(0, Math.max(60, first.length));
   if (venues.length < 4 && (signal.entities?.length || signal.tags?.length)) {
     try {
       const r = await tastePlaces(signal, city, { take: 6 });
@@ -187,12 +200,14 @@ export async function runConcierge(q: ConciergeQuery, meta: A2AMeta): Promise<Co
   }
   const tagScores = venues.map((v) => tagOverlap(v.qlooTags, personaAff));
   const ent = venues.map((v) => (v.qlooEntityId ? (entityAff[v.qlooEntityId] ?? 0) : null));
-  const A = combineAffinity(tagScores, ent);
+  const base = combineAffinity(tagScores, ent);
+  // Direct credit when a venue's own Qloo tags name what the person asked for ("natural wine" and "Natural Wine Bar").
+  const askedFit = (v: Venue) =>
+    vibePhrases.length ? vibePhrases.filter((ph) => v.qlooTags.some((t) => nameScore(ph, t.name) >= 1)).length / vibePhrases.length : 0;
+  const A = base.map((a, i) => (vibePhrases.length ? Math.min(1, 0.6 * a + 0.4 * askedFit(venues[i])) : a));
 
   // 4. Ask the top four venue agents over A2A.
   // When the request names a neighbourhood, venues there are asked first.
-  const wanted = `${q.city ?? ""} ${q.text ?? ""}`.toLowerCase();
-  const inArea = (v: Venue) => !!v.neighborhood && wanted.includes(v.neighborhood.toLowerCase());
   const top = venues
     .map((v, i) => ({ v, A: A[i], near: inArea(v) }))
     .sort((a, b) => Number(b.near) - Number(a.near) || b.A - a.A)
