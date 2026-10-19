@@ -1,0 +1,42 @@
+{
+  "name": "spotlit",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Get spotlit by agents. Agent visibility for independent venues, built on Qloo Taste AI, A2A and MCP.",
+  "license": "MIT",
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "qloo:smoke": "tsx scripts/qloo-smoke.ts",
+    "seed:demo": "tsx scripts/seed-demo.ts",
+    "rules:deploy": "npx firebase-tools deploy --only firestore",
+    "qloo:tags": "tsx scripts/qloo-tags.ts"
+  },
+  "dependencies": {
+    "@ai-sdk/google": "^2.0.103",
+    "ai": "^5.0.275",
+    "firebase": "^12.19.0",
+    "firebase-admin": "^13.10.0",
+    "next": "15.5.27",
+    "react": "^19.1.0",
+    "react-dom": "^19.1.0",
+    "zod": "^3.25.76"
+  },
+  "devDependencies": {
+    "@tailwindcss/postcss": "^4.3.3",
+    "@types/node": "^22.10.0",
+    "@types/react": "^19.1.0",
+    "@types/react-dom": "^19.1.0",
+    "dotenv": "^16.4.7",
+    "tailwindcss": "^4.3.3",
+    "tsx": "^4.20.0",
+    "typescript": "^5.7.0",
+    "vitest": "^3.2.0"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}

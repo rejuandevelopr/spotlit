@@ -1,0 +1,45 @@
+rules_version = '2';
+
+// Spotlit writes everything from the server with the Admin SDK, which bypasses these rules.
+// The rules protect the database if a client SDK ever reads it directly: public data is
+// readable, owner data is readable by the owner, and no client can write anything.
+service cloud.firestore {
+  match /databases/{db}/documents {
+    function signedIn() { return request.auth != null; }
+    function ownsVenue(venueId) {
+      return signedIn() && get(/databases/$(db)/documents/venues/$(venueId)).data.ownerId == request.auth.uid;
+    }
+
+    match /users/{uid} {
+      allow read: if signedIn() && request.auth.uid == uid;
+      allow write: if false;
+      match /notifications/{id} { allow read: if signedIn() && request.auth.uid == uid; allow write: if false; }
+    }
+
+    match /venues/{venueId} {
+      allow read: if true;
+      allow write: if false;
+      match /cards/{v}   { allow read: if true; allow write: if false; }
+      match /taste/{d}   { allow read: if true; allow write: if false; }
+      match /rivals/{r}  { allow read: if ownsVenue(venueId); allow write: if false; }
+      match /actions/{a} { allow read: if ownsVenue(venueId); allow write: if false; }
+      match /inbox/{m}   { allow read: if ownsVenue(venueId); allow write: if false; }
+    }
+
+    match /runs/{runId} {
+      allow read: if resource.data.isPublicDemo == true
+                  || (signedIn() && resource.data.ownerId == request.auth.uid);
+      allow write: if false;
+      match /{sub=**} {
+        allow read: if get(/databases/$(db)/documents/runs/$(runId)).data.isPublicDemo == true
+                    || (signedIn() && get(/databases/$(db)/documents/runs/$(runId)).data.ownerId == request.auth.uid);
+        allow write: if false;
+      }
+    }
+
+    match /segments/{id} { allow read: if true; allow write: if false; }
+
+    // Server only: slugs, shares, qlooCache, qlooCalls, llmCache, meta.
+    match /{document=**} { allow read, write: if false; }
+  }
+}

@@ -1,0 +1,154 @@
+PLACE Death & Co East Village 273C2859-742C-4DD2-88A9-0A07C5551C55
+
+== Tags on the place itself (name | type) ==
+Bar | urn:tag:category:place
+Mixology education | urn:tag:activity_type:qloo
+Cocktail enthusiasts | urn:tag:customer_identity:qloo
+Late night | urn:tag:time_of_day_fit:qloo
+East village | urn:tag:resy:keyword:place
+Bar | urn:tag:genre:place
+Book | urn:tag:resy:keyword:place
+Special occasion | urn:tag:visit_intent:qloo
+Specialty cocktails | urn:tag:beverage_offering:qloo
+Delivery | urn:tag:service_type:qloo
+Locals | urn:tag:customer_identity:qloo
+Classic | urn:tag:ambience:qloo
+Wheelchair accessible restroom | urn:tag:accessibility:place
+Takeout | urn:tag:service_type:qloo
+Stylish | urn:tag:ambience:qloo
+Couples | urn:tag:customer_identity:qloo
+Place | urn:tag:genre:place
+Flea flicker | urn:tag:menu_highlight:qloo
+Climbing | urn:tag:resy:collection:place
+Foodies | urn:tag:customer_identity:qloo
+Drunken cookies | urn:tag:menu_highlight:qloo
+Intimate | urn:tag:ambience:qloo
+Dining drinking | urn:tag:activity_type:qloo
+City center | urn:tag:setting:qloo
+Where to drink | urn:tag:resy:collection:place
+Shishito peppers | urn:tag:menu_highlight:qloo
+Trendy | urn:tag:neighborhood_characteristic:qloo
+Romantic | urn:tag:ambience:qloo
+10009 | urn:tag:resy:keyword:place
+Small plates | urn:tag:amenity:qloo
+Private events | urn:tag:service_type:qloo
+East village dining district | urn:tag:nearby_attraction:qloo
+5 0 star | urn:tag:resy:keyword:place
+Reservations | urn:tag:resy:keyword:place
+Cocktails | urn:tag:beverage_offering:qloo
+Cocktail bar | urn:tag:cuisine:qloo
+American | urn:tag:cuisine:qloo
+Casual | urn:tag:culinary_style:qloo
+Vintage egg nog | urn:tag:menu_highlight:qloo
+Central | urn:tag:neighborhood_characteristic:qloo
+Elegant | urn:tag:ambience:qloo
+Beer | urn:tag:beverage_offering:qloo
+Moody | urn:tag:ambience:qloo
+New on resy | urn:tag:resy:collection:place
+Walk ins | urn:tag:service_type:qloo
+Table service | urn:tag:amenity:qloo
+Cocktail bar | urn:tag:category:place
+Burrata with truffle honey | urn:tag:menu_highlight:qloo
+Critically acclaimed | urn:tag:resy:collection:place
+Spirits appreciation | urn:tag:interests:qloo
+Full bar | urn:tag:beverage_offering:qloo
+Reservations | urn:tag:amenity:qloo
+Interior view | urn:tag:view:qloo
+Craft mixology | urn:tag:interests:qloo
+Authentic | urn:tag:culinary_style:qloo
+Destination | urn:tag:visit_intent:qloo
+Elegant | urn:tag:decor:qloo
+Vintage | urn:tag:decor:qloo
+Cocktail bar | urn:tag:resy:keyword:place
+Moody | urn:tag:decor:qloo
+Wine | urn:tag:beverage_offering:qloo
+Expensive | urn:tag:cost_description:place
+Nightlife | urn:tag:activity_type:qloo
+Restaurant | urn:tag:resy:keyword:place
+Popcorn | urn:tag:menu_highlight:qloo
+Restaurant | urn:tag:category:place
+New york | urn:tag:resy:keyword:place
+Evening | urn:tag:time_of_day_fit:qloo
+Resy | urn:tag:resy:keyword:place
+Dining | urn:tag:resy:keyword:place
+Sophisticated | urn:tag:decor:qloo
+Walkable | urn:tag:neighborhood_characteristic:qloo
+Speakeasy | urn:tag:setting:qloo
+Tourists | urn:tag:customer_identity:qloo
+Bar service | urn:tag:service_type:qloo
+Historic | urn:tag:setting:qloo
+Dine in | urn:tag:service_type:qloo
+Restaurant | urn:tag:genre:place
+Reservations | urn:tag:service_type:qloo
+Urban | urn:tag:setting:qloo
+Groups of friends | urn:tag:customer_identity:qloo
+25 29 | urn:tag:age_range:qloo
+Stylish | urn:tag:decor:qloo
+Speakeasy culture | urn:tag:interests:qloo
+Sophisticated | urn:tag:ambience:qloo
+35 44 | urn:tag:age_range:qloo
+Nightlife hub | urn:tag:neighborhood_characteristic:qloo
+Speakeasy | urn:tag:decor:qloo
+Vegan | urn:tag:dietary_option:qloo
+Quiet | urn:tag:ambience:qloo
+Gourmet small plates | urn:tag:interests:qloo
+Inviting | urn:tag:ambience:qloo
+Historic | urn:tag:neighborhood_characteristic:qloo
+Innovative | urn:tag:culinary_style:qloo
+Authentic | urn:tag:neighborhood_characteristic:qloo
+Moderate | urn:tag:noise_level:qloo
+Spirits | urn:tag:beverage_offering:qloo
+Bar seating | urn:tag:amenity:qloo
+Classic | urn:tag:decor:qloo
+Lively | urn:tag:ambience:qloo
+30 34 | urn:tag:age_range:qloo
+Tompkins square park | urn:tag:nearby_attraction:qloo
+Cocktail bar | urn:tag:genre:place
+Bustling | urn:tag:neighborhood_characteristic:qloo
+Urban | urn:tag:decor:qloo
+Nightlife culture | urn:tag:interests:qloo
+Charming | urn:tag:ambience:qloo
+
+== Insights tags (name | type | subtype | affinity) ==
+Discover | ? | urn:tag:credit_card:place | 1
+Four Star | ? | urn:tag:hotel_rating:place | 1
+Activists | ? | urn:tag:category:qloo | 0.9977810864427681
+Fried Chicken | ? | urn:tag:specialty_dish:place | 0.9966425619834711
+Avocado Toast | ? | urn:tag:specialty_dish:place | 0.9945764462809917
+Writers | ? | urn:tag:category:qloo | 0.9943640684645618
+Bar | ? | urn:tag:genre:place | 0.9937150837988826
+Salad | ? | urn:tag:specialty_dish:place | 0.9932851239669421
+Fries | ? | urn:tag:specialty_dish:place | 0.9925103305785123
+French Fries | ? | urn:tag:specialty_dish:place | 0.9917355371900827
+Steak Tartare | ? | urn:tag:specialty_dish:place | 0.9917355371900827
+Brunch | ? | urn:tag:genre:place | 0.9909217877094971
+Tiramisu | ? | urn:tag:specialty_dish:place | 0.990702479338843
+Chicken Wings | ? | urn:tag:specialty_dish:place | 0.9896694214876033
+Writer | ? | urn:tag:occupation:qloo | 0.9891529426766423
+Deviled Eggs | ? | urn:tag:specialty_dish:place | 0.9886363636363636
+Fish Chips | ? | urn:tag:specialty_dish:place | 0.987345041322314
+Wine Bar | ? | urn:tag:genre:place | 0.986731843575419
+Burger | ? | urn:tag:specialty_dish:place | 0.9850206611570247
+Actor | ? | urn:tag:occupation:qloo | 0.9850123923370716
+Avocado | ? | urn:tag:specialty_dish:place | 0.984245867768595
+Seafood | ? | urn:tag:specialty_dish:place | 0.9829545454545454
+Panna Cotta | ? | urn:tag:specialty_dish:place | 0.9829545454545454
+Sauce | ? | urn:tag:specialty_dish:place | 0.9826962809917356
+Comedy | ? | urn:tag:category:qloo | 0.9813937621287281
+Oysters On Half Shell | ? | urn:tag:specialty_dish:place | 0.9806301652892562
+French Toast | ? | urn:tag:specialty_dish:place | 0.9806301652892562
+Toast | ? | urn:tag:specialty_dish:place | 0.9806301652892562
+Grilled Cheese | ? | urn:tag:specialty_dish:place | 0.9790805785123967
+Steak | ? | urn:tag:specialty_dish:place | 0.9788223140495869
+Fried Chicken Sandwich | ? | urn:tag:specialty_dish:place | 0.9783057851239669
+Sandwich | ? | urn:tag:specialty_dish:place | 0.978047520661157
+Wings | ? | urn:tag:specialty_dish:place | 0.9775309917355373
+Burrata | ? | urn:tag:specialty_dish:place | 0.9767561983471075
+Fish | ? | urn:tag:specialty_dish:place | 0.9764979338842975
+Cucumber Salad | ? | urn:tag:specialty_dish:place | 0.9762396694214877
+Soup | ? | urn:tag:specialty_dish:place | 0.974948347107438
+Octopus | ? | urn:tag:specialty_dish:place | 0.9744318181818181
+New American | ? | urn:tag:genre:place | 0.9741620111731844
+Tater Tots | ? | urn:tag:specialty_dish:place | 0.9733987603305785
+
+First insights tag raw: {"tag_id":"urn:tag:credit_card:place:discover","name":"Discover","types":["urn:entity:place"],"subtype":"urn:tag:credit_card:place","tag_value":"urn:tag:credit_card:place:discover","popularity":0.9999869619097692,"query":{"affinity":1}}

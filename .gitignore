@@ -1,0 +1,12 @@
+node_modules
+.next
+out
+.env
+.env.local
+.env*.local
+*.tsbuildinfo
+next-env.d.ts
+.spotlit-mock-db.json
+.vercel
+firebase-debug.log
+docs/qloo-capabilities.md
