@@ -48,6 +48,8 @@ const STEM_FILLER = new Set(["like", "ish", "themed", "theme", "oriented", "insp
 export function tagStem(name: string): string {
   const words = name
     .toLowerCase()
+    .normalize("NFKD")
+    .replace(/[\u0300-\u036f]/g, "")
     .split(/[^a-z0-9]+/)
     .filter(Boolean)
     .map((w) => (w.length > 5 && w.endsWith("ish") ? w.slice(0, -3) : w))

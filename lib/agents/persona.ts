@@ -23,7 +23,7 @@ function timePhrase(time: string) {
 
 const BUDGET = { $: "keep it cheap", $$: "nothing too pricey", $$$: "happy to splurge" };
 
-export function templateRequest(p: Persona, city: string): string {
+export function templateRequest(p: Persona, city: string, near?: string | null): string {
   const r = mulberry32(p.index * 7919 + 17);
   const day = DAY_LABEL[p.slot.day];
   // People describe their taste with music and films first. Brands read oddly in a dinner request.
@@ -31,7 +31,8 @@ export function templateRequest(p: Persona, city: string): string {
   const likes = ordered.slice(0, 2).map((s) => s.name);
   const likesText = likes.length === 2 ? `${likes[0]} and ${likes[1]}` : likes[0] ?? "good music";
   const party = p.partySize === 1 ? "just me" : p.partySize === 2 ? "two of us" : `${p.partySize} of us`;
-  const area = city.includes("New York") ? "Brooklyn" : city;
+  // Ask for the venue's own part of town. Older runs without a neighbourhood keep the previous wording.
+  const area = near?.trim() || (city.includes("New York") ? "Brooklyn" : city);
   const starts: Record<string, string[]> = {
     "date night": [`Somewhere chill for a date ${day}`, `Need a date spot for ${day} night`],
     "group dinner": [`Looking for a place for a group dinner ${day}`, `${party}, dinner and drinks ${day}`],
@@ -46,7 +47,7 @@ export function templateRequest(p: Persona, city: string): string {
   return `${start} ${timePhrase(p.slot.time)} in ${area}, ${party}. ${pick(r, mids).replace(/^./, (c) => c.toUpperCase())}, ${BUDGET[p.budget]}.`;
 }
 
-export async function personaRequest(p: Persona, city: string): Promise<string> {
+export async function personaRequest(p: Persona, city: string, near?: string | null): Promise<string> {
   const out = await llmObject({
     tier: "fast",
     schema: Out,
@@ -55,7 +56,7 @@ export async function personaRequest(p: Persona, city: string): Promise<string> 
     temperature: 0.8,
     prompt: JSON.stringify({
       name: p.displayName,
-      city: city.includes("New York") ? "Brooklyn, New York" : city,
+      city: near?.trim() ? `${near.trim()}, ${city}` : city.includes("New York") ? "Brooklyn, New York" : city,
       occasion: p.occasion,
       day: DAY_LABEL[p.slot.day],
       time: p.slot.time,
@@ -65,5 +66,5 @@ export async function personaRequest(p: Persona, city: string): Promise<string> 
     }),
   });
   const text = out?.requestText?.replace(/—/g, ",").trim();
-  return text && text.length > 10 ? text : templateRequest(p, city);
+  return text && text.length > 10 ? text : templateRequest(p, city, near);
 }

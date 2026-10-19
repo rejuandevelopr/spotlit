@@ -87,3 +87,9 @@ describe("splitLift", () => {
     expect(splitLift(7, [{ id: "a", estLift: 5 }, { id: "b", estLift: 2 }, { id: "c", estLift: 1 }])).toEqual({ a: 4, b: 2, c: 1 });
   });
 });
+
+describe("distinctTags accents", () => {
+  it("treats café and cafe as one idea", () => {
+    expect(distinctTags([{ name: "Cafe Concert Music" }, { name: "Café-Concert" }]).length).toBe(1);
+  });
+});

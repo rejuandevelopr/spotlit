@@ -22,7 +22,7 @@ const ASK_TOP = 4;
 export async function playRound(ctx: RoundContext, round: RoundDoc): Promise<Partial<RoundDoc>> {
   const { run, venues, cards } = ctx;
   const persona = { ...round.persona };
-  if (!persona.requestText) persona.requestText = env.arenaLlm === "all" ? await personaRequest(persona, run.city) : templateRequest(persona, run.city);
+  if (!persona.requestText) persona.requestText = env.arenaLlm === "all" ? await personaRequest(persona, run.city, run.area) : templateRequest(persona, run.city, run.area);
   const likes = persona.seeds.map((s) => s.name);
   const seedIds = persona.seeds.map((s) => s.id);
   const qctx = { runId: run.id };

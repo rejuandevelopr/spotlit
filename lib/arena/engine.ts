@@ -77,6 +77,7 @@ export async function createRun(input: CreateRunInput): Promise<RunDoc> {
     number,
     personaCount: personas.length,
     city: venue.city,
+    area: venue.neighborhood ?? null,
     status: "running",
     label: input.label ?? (parent ? "what-if" : "baseline"),
     parentRunId: parent?.id ?? null,

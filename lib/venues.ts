@@ -402,7 +402,12 @@ export async function findRivals(venueId: string, take = 8): Promise<Rival[]> {
     r = await tastePlaces(sig, venue.city, { exclude: venue.qlooEntityId ? [venue.qlooEntityId] : [], take: take + 4 }, { venueId });
   }
   const myTagNames = new Set(venue.qlooTags.map((t) => t.name.toLowerCase()));
-  const places = r.data.filter((p) => p.id !== venue.qlooEntityId && !p.isClosed).slice(0, take);
+  // Qloo place results can include shops (an instrument store, a boutique). Agents compare bars and restaurants,
+  // so retail and services are left out of the rival set.
+  const RETAIL_RE = /\b(store|shop|instruments?|boutique|salon|spa|pharmacy|bank|gallery|museum|gym|fitness|school|clinic|supermarket|grocery|apartments?|realty|dentist)\b/i;
+  const places = r.data
+    .filter((p) => p.id !== venue.qlooEntityId && !p.isClosed && !RETAIL_RE.test(p.name) && !p.tags.some((t) => /retail|shopping/i.test(`${t.name} ${t.type ?? ""}`)))
+    .slice(0, take);
   await db().deleteCollection(P.rivals(venueId));
   const rivals: Rival[] = [];
   for (const place of places) {

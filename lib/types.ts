@@ -223,6 +223,8 @@ export interface RunDoc {
   number: number;
   personaCount: number;
   city: string;
+  /** Venue neighbourhood, so personas ask for the right part of town. Older runs do not have it. */
+  area?: string | null;
   status: "queued" | "running" | "complete" | "failed";
   label: "baseline" | "what-if" | "weekly";
   parentRunId: string | null;

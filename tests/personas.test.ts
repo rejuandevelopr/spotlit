@@ -59,3 +59,12 @@ describe("buildPersonas", () => {
     }
   });
 });
+
+import { templateRequest } from "@/lib/agents/persona";
+describe("templateRequest area", () => {
+  it("asks for the venue's neighbourhood", () => {
+    const p = buildPersonas(7, segments, 6)[0];
+    expect(templateRequest(p, "New York", "West Village")).toContain("in West Village");
+    expect(templateRequest(p, "New York")).toContain("in Brooklyn");
+  });
+});
