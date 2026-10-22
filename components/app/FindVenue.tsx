@@ -116,7 +116,7 @@ export function FindVenue({ defaultCity }: { defaultCity: string }) {
     }
   }
 
-  const darkInput = "w-full min-h-12 rounded-[10px] border border-[#2E2E31] bg-ink-3 px-3.5 text-[15px] text-white placeholder:text-smoke focus:outline-2 focus:outline-signal";
+  const darkInput = "w-full min-h-12 rounded-[10px] border border-[#2E2E31] bg-ink-3 px-3.5 text-[15px] text-white placeholder:text-ash placeholder:italic focus:outline-2 focus:outline-signal";
 
   return (
     <div className="flex flex-wrap items-start gap-4">
@@ -175,19 +175,19 @@ export function FindVenue({ defaultCity }: { defaultCity: string }) {
         <h2 className="serif m-0 text-4xl leading-[1.05]">Describe it instead.</h2>
         <label className="flex flex-col gap-2 text-sm font-medium text-fog">
           Venue name
-          <input required minLength={2} value={name} onChange={(e) => setName(e.target.value)} className={darkInput} placeholder="Halftone House" />
+          <input required minLength={2} value={name} onChange={(e) => setName(e.target.value)} className={darkInput} placeholder="e.g. Halftone House" />
         </label>
         <label className="flex flex-col gap-2 text-sm font-medium text-fog">
           Neighbourhood
-          <input value={hood} onChange={(e) => setHood(e.target.value)} className={darkInput} placeholder="Williamsburg" />
+          <input value={hood} onChange={(e) => setHood(e.target.value)} className={darkInput} placeholder="e.g. Williamsburg" />
         </label>
         <label className="flex flex-col gap-2 text-sm font-medium text-fog">
           What kind of place
-          <input required minLength={2} value={kind} onChange={(e) => setKind(e.target.value)} className={darkInput} placeholder="Listening bar, wine bar, ramen counter" />
+          <input required minLength={2} value={kind} onChange={(e) => setKind(e.target.value)} className={darkInput} placeholder="e.g. listening bar, wine bar" />
         </label>
         <label className="flex flex-col gap-2 text-sm font-medium text-fog">
           Vibe and music
-          <textarea value={vibe} onChange={(e) => setVibe(e.target.value)} rows={3} className={`${darkInput} resize-y py-3`} placeholder="Dim, vinyl only, psych soul and city pop" />
+          <textarea value={vibe} onChange={(e) => setVibe(e.target.value)} rows={3} className={`${darkInput} resize-y py-3`} placeholder="e.g. dim, vinyl only, psych soul" />
         </label>
         <fieldset className="m-0 flex flex-col gap-2 border-0 p-0">
           <legend className="mb-2 text-sm font-medium text-fog">Price</legend>
@@ -214,6 +214,11 @@ export function FindVenue({ defaultCity }: { defaultCity: string }) {
         <button type="submit" disabled={creating || !name || !kind} className="btn btn-signal">
           {creating ? <LoadingSteps every={3500} steps={["Creating your venue…", "Saving your Qloo taste tags…", "Preparing your agent card…"]} /> : "Build my Taste DNA"}
         </button>
+        {!creating && (!name || !kind) && (
+          <p className="m-0 text-center text-[13px] text-smoke">
+            Fill in {!name && !kind ? "the venue name and what kind of place" : !name ? "the venue name" : "what kind of place"} to continue.
+          </p>
+        )}
       </form>
     </div>
   );

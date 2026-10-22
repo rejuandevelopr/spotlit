@@ -19,7 +19,12 @@ export function openerFor(run: RunDoc, actions: ActionDoc[]): string {
     PITCH_GAP: `${n} times your reply was vaguer than the winner's. Specific beats generic: one record, one seat, one glass.`,
     CLOSED: `${n} requests came when you were closed. That's a business decision, so I'll estimate it rather than measure it.`,
   };
-  return `${lead[top]}${first ? ` Start with "${first.title}".` : ""} Ask me about any segment.`;
+  const cardLosses = (s.reasonCodes.INFO_GAP ?? 0) + (s.reasonCodes.PITCH_GAP ?? 0);
+  const cardNote =
+    cardLosses === 0 && s.total > s.wins
+      ? " Your agent card already answers agents well, so card fixes will move little. Your next picks come from programming and hours."
+      : "";
+  return `${lead[top]}${cardNote}${first ? ` Start with "${first.title}".` : ""} Ask me about any segment.`;
 }
 
 function contextFor(venue: Venue, run: RunDoc, actions: ActionDoc[]) {

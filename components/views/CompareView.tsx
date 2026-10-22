@@ -2,7 +2,7 @@ import Link from "next/link";
 import { SoavGauge } from "@/components/spotlit/Gauge";
 import { runLabel } from "@/lib/format";
 import { splitLift } from "@/lib/lift";
-import type { ActionDoc, RunDoc, Venue } from "@/lib/types";
+import type { ActionDoc, ReasonCode, RunDoc, Venue } from "@/lib/types";
 import { EmptyState, PageHeader } from "./PageHeader";
 import { PrintButton } from "./PrintButton";
 
@@ -119,6 +119,25 @@ export function CompareView({ venue, before, after, actions, base }: { venue: Ve
               </div>
             ))}
           </div>
+          {gain <= 0 && (
+            <p className="m-0 rounded-[10px] border border-line bg-stone px-4 py-3 text-sm leading-relaxed">
+              <strong>Why no change?</strong>{" "}
+              {(() => {
+                const rc = b.reasonCodes;
+                const fixable = (rc.INFO_GAP ?? 0) + (rc.PITCH_GAP ?? 0);
+                const taste = rc.TASTE_GAP ?? 0;
+                const closed = rc.CLOSED ?? 0;
+                return fixable
+                  ? `Card fixes target ${fixable} info and pitch losses, but the rivals still won those requests on taste or timing.`
+                  : `Your agent card was already complete enough: ${taste} losses were on taste and ${closed} on opening hours, which card fixes cannot change. The event and hours ideas below are where your next picks are.`;
+              })()}
+            </p>
+          )}
+          {gain <= 0 && (
+            <div className="m-0 rounded-[10px] border border-line bg-stone px-4 py-3 text-sm leading-relaxed">
+              <strong>Why no change?</strong> {whyNoChange(b.reasonCodes)}
+            </div>
+          )}
           <p className="m-0 text-[13px] leading-relaxed text-ash">
             Measured lifts come from re-running the same personas; when several fixes ship together the total ({a.wins - b.wins >= 0 ? "+" : ""}{a.wins - b.wins} picks) is split by each fix&apos;s projected share. Estimated lifts use Qloo tag affinity and are not counted in the {Math.round(a.soav * 100)}%.
           </p>
@@ -126,4 +145,15 @@ export function CompareView({ venue, before, after, actions, base }: { venue: Ve
       </div>
     </>
   );
+}
+
+/** Plain explanation for a what if run that did not gain picks, from the baseline's reason codes. */
+function whyNoChange(rc: Partial<Record<ReasonCode, number>>): string {
+  const taste = rc.TASTE_GAP ?? 0;
+  const closed = rc.CLOSED ?? 0;
+  const card = (rc.INFO_GAP ?? 0) + (rc.PITCH_GAP ?? 0);
+  if (card === 0) {
+    return `Your agent card was already answering well. The baseline losses were ${taste} on taste and ${closed} on opening hours, and card fixes cannot change either. The event and hours ideas are where your next picks are.`;
+  }
+  return `The fixes targeted ${card} losses about missing info or vague replies, but in those requests a rival still matched the persona's taste better. Try the event and hours ideas next.`;
 }

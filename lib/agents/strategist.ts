@@ -185,8 +185,14 @@ export async function generateActions(run: RunDoc, rounds: RoundDoc[]): Promise<
   const old = await db().list<ActionDoc>(P.actions(venue.id));
   await Promise.all(old.filter((a) => a.status !== "applied").map((a) => db().delete(P.action(venue.id, a.id))));
 
+  // Card fixes come first when the card actually cost picks. When no loss was mainly about missing info
+  // or a vague reply, the card is already doing its job, so the business ideas (events, hours) lead.
+  const cardLosses = lost.filter((r) => r.reasonCodes[0] === "INFO_GAP" || r.reasonCodes[0] === "PITCH_GAP").length;
+  const measuredFirst = cardLosses > 0;
   const ranked = actions
-    .sort((a, b) => (a.liftType === b.liftType ? b.estLift - a.estLift : a.liftType === "measured" ? -1 : 1))
+    .sort((a, b) =>
+      a.liftType === b.liftType ? b.estLift - a.estLift : (a.liftType === "measured") === measuredFirst ? -1 : 1,
+    )
     .slice(0, MAX_ACTIONS)
     .map((a, i) => ({ ...a, id: newId(14), rank: i + 1, status: "proposed" as const, measuredLift: null, createdAt: Date.now() }));
   await Promise.all(ranked.map((a) => db().set(P.action(venue.id, a.id), { ...a })));
