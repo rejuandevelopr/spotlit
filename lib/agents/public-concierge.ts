@@ -177,14 +177,14 @@ export async function runConcierge(q: ConciergeQuery, meta: A2AMeta): Promise<Co
         personaAff.set(t.id, a);
         personaAff.set(t.name.toLowerCase(), a);
       });
-      // The tags the person asked for count fully, even if Qloo's related list leaves them out.
-      for (const t of resolvedTags) {
-        personaAff.set(t.id, 1);
-        personaAff.set(t.name.toLowerCase(), 1);
-      }
     } catch {
       /* ignore */
     }
+  }
+  // The tags the person asked for count fully, even if Qloo's related list leaves them out or the call failed.
+  for (const t of resolvedTags) {
+    personaAff.set(t.id, 1);
+    personaAff.set(t.name.toLowerCase(), 1);
   }
   for (const v of venues) v.qlooTags = await ensureVenueTags(v);
   let entityAff: Record<string, number> = {};
@@ -202,16 +202,24 @@ export async function runConcierge(q: ConciergeQuery, meta: A2AMeta): Promise<Co
   const ent = venues.map((v) => (v.qlooEntityId ? (entityAff[v.qlooEntityId] ?? 0) : null));
   const base = combineAffinity(tagScores, ent);
   // Direct credit when a venue's own Qloo tags name what the person asked for ("natural wine" and "Natural Wine Bar").
-  const askedFit = (v: Venue) =>
-    vibePhrases.length ? vibePhrases.filter((ph) => v.qlooTags.some((t) => nameScore(ph, t.name) >= 1)).length / vibePhrases.length : 0;
+  const askedFit = (v: Venue) => {
+    if (!vibePhrases.length) return 0;
+    const ids = new Set([...v.qlooTags.map((t) => t.id), ...(v.descriptionTags ?? [])]);
+    const idHit = resolvedTags.filter((t) => ids.has(t.id)).length;
+    const nameHit = vibePhrases.filter((ph) => v.qlooTags.some((t) => nameScore(ph, t.name) >= 0.6)).length;
+    return Math.min(1, Math.max(idHit, nameHit) / vibePhrases.length);
+  };
   const A = base.map((a, i) => (vibePhrases.length ? Math.min(1, 0.6 * a + 0.4 * askedFit(venues[i])) : a));
 
   // 4. Ask the top four venue agents over A2A.
   // When the request names a neighbourhood, venues there are asked first.
-  const top = venues
+  const ranked = venues
     .map((v, i) => ({ v, A: A[i], near: inArea(v) }))
-    .sort((a, b) => Number(b.near) - Number(a.near) || b.A - a.A)
-    .slice(0, 4);
+    .sort((a, b) => Number(b.near) - Number(a.near) || b.A - a.A);
+  // A claimed venue has a real agent, so the best matching claimed venue nearby is always asked.
+  const claimedNear = ranked.find((x) => x.v.isClaimed && (x.near || !wanted.trim()));
+  const top = ranked.slice(0, 4);
+  if (claimedNear && !top.includes(claimedNear)) top[top.length - 1] = claimedNear;
   const likesText = resolved.map((r) => r.name);
   const consulted: (Consulted & { inboxId?: string })[] = await Promise.all(
     top.map(async ({ v, A: a }) => {
