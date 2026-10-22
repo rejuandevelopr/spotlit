@@ -103,3 +103,11 @@ describe("publicLink", () => {
     expect(publicLink(null)).toBeNull();
   });
 });
+
+import { normalizeCity } from "@/lib/agents/public-concierge";
+describe("normalizeCity", () => {
+  it("maps every New York form to the stored name", () => {
+    for (const c of ["New York, NY", "NYC", "Williamsburg, Brooklyn", "new york", "Brooklyn, New York"]) expect(normalizeCity(c)).toBe("New York");
+    expect(normalizeCity("chicago, IL")).toBe("Chicago");
+  });
+});

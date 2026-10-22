@@ -66,6 +66,21 @@ function isPlaceLike(like: string, placeWords: string) {
   return l.length > 2 && (placeWords.includes(l) || /\b(brooklyn|manhattan|williamsburg|bushwick|greenpoint|queens|soho|tribeca|harlem|chelsea|west village|east village|lower east side)\b/i.test(l));
 }
 
+const NYC_RE =
+  /\b(new york|nyc|ny|brooklyn|manhattan|queens|bronx|staten island|williamsburg|greenpoint|bushwick|soho|tribeca|harlem|chelsea|west village|east village|lower east side|dumbo|astoria)\b/i;
+
+/**
+ * Venues are stored under a plain city name ("New York"). Agents send many forms:
+ * "New York, NY", "Williamsburg, Brooklyn", "NYC". Map them all to the stored name.
+ */
+export function normalizeCity(raw: string | null | undefined): string {
+  const c = (raw ?? "").trim();
+  if (!c) return env.demoCity;
+  if (NYC_RE.test(c)) return "New York";
+  const first = c.split(",")[0].trim();
+  return first.replace(/\b\w/g, (m) => m.toUpperCase());
+}
+
 export async function runConcierge(q: ConciergeQuery, meta: A2AMeta): Promise<ConciergeResult> {
   const parsed = parseIntent(q.text ?? "");
   const intent: Intent = {
@@ -77,7 +92,7 @@ export async function runConcierge(q: ConciergeQuery, meta: A2AMeta): Promise<Co
     likes: (q.likes?.length ? q.likes : parsed.likes).slice(0, 4),
     city: q.city ?? parsed.city ?? env.demoCity,
   };
-  const city = intent.city && /brooklyn|williamsburg|greenpoint|bushwick|manhattan|nyc/i.test(intent.city) ? "New York" : intent.city ?? env.demoCity;
+  const city = normalizeCity(intent.city);
   const evidence: Evidence[] = [];
 
   // 1. Resolve tastes. Venue words ("vinyl", "natural wine", "dim listening bar") become Qloo tags.
@@ -198,7 +213,11 @@ export async function runConcierge(q: ConciergeQuery, meta: A2AMeta): Promise<Co
       /* ignore */
     }
   }
-  const tagScores = venues.map((v) => tagOverlap(v.qlooTags, personaAff));
+  // A venue's own description tags (what the owner said it is) count alongside its Qloo insight tags.
+  const tagScores = venues.map((v) => {
+    const own = (v.descriptionTags ?? []).filter((id) => !v.qlooTags.some((t) => t.id === id)).map((id) => ({ id, name: id, affinity: 1 }));
+    return tagOverlap([...own, ...v.qlooTags], personaAff);
+  });
   const ent = venues.map((v) => (v.qlooEntityId ? (entityAff[v.qlooEntityId] ?? 0) : null));
   const base = combineAffinity(tagScores, ent);
   // Direct credit when a venue's own Qloo tags name what the person asked for ("natural wine" and "Natural Wine Bar").
