@@ -2,7 +2,7 @@
 
 **Get spotlit by agents.** AI assistants are starting to choose where people eat, drink and go out. Spotlit shows an independent venue how often agents choose it, why they pick a rival instead, and fixes it with real taste data from Qloo.
 
-Built for the Qloo Agentic Hackathon 2026. MIT licensed. **Live app: [getspotlit.vercel.app](https://getspotlit.vercel.app)**
+Built from scratch for the Qloo Agentic Hackathon 2026, during the submission period. MIT licensed. **Live app: [getspotlit.vercel.app](https://getspotlit.vercel.app)**
 
 ![Spotlit](public/brand/halftone-spotlight-hero-1920x1080.webp)
 
@@ -33,7 +33,16 @@ Sign in with any Google account to get your own workspace: search Qloo for a rea
 
 ## Why Qloo is essential
 
-Qloo is the reason the product works, not a garnish:
+**Qloo is the engine, Gemini is the voice.** Every taste signal, rival, persona and 60% of every verdict come from the Qloo API. Gemini only writes words: persona requests, reply ratings (15% of the score) and summaries. Remove Gemini and Spotlit still works with template text. Remove Qloo and there is nothing to measure.
+
+| Part of Spotlit | Without Qloo | Without Gemini |
+| --- | --- | --- |
+| Taste DNA, rivals, personas | Nothing to show | Works |
+| Arena verdicts (60% Qloo taste score) | Nothing to judge on | Works, code only answer scoring |
+| Concierge and MCP matching | No taste matching | Works |
+| Report numbers and strategist fixes | No data | Works, template text |
+
+Where Qloo is used:
 
 1. Venue search (`/search`) and description to taste tags (`/v2/tags`).
 2. Taste DNA: tags, demographics, artists, films, brands, heatmap (`/v2/insights`).
@@ -56,7 +65,7 @@ Qloo is the reason the product works, not a garnish:
 | Arena place affinity, one call per persona | `GET /v2/insights` | `filter.results.entities` for all candidates |
 | Heatmap | `GET /v2/insights` | `filter.type=urn:heatmap`, `filter.location.query` |
 
-Responses are cached in Firestore (`qlooCache`, 7 days) and every call is traced in `qlooCalls` for the evidence drawer. With `DEMO_MODE=1` the app serves only cached responses, so the demo survives even if the API key expires.
+Responses are cached in Firestore (`qlooCache`, 7 days) and every call is traced in `qlooCalls` for the evidence drawer. `DEMO_MODE=1` makes the app serve only cached responses. It is an emergency switch for an expired key only, because new venues cannot be scanned while it is on.
 
 ## Scoring
 
@@ -129,7 +138,9 @@ tests/                  vitest: scoring, personas, readiness, intent, claim, A2A
 
 The arena does not need a queue service. `POST /api/arena` creates the run and one round per persona, then keeps playing batches in the background with `after()`. Rounds are claimed in Firestore transactions, stale locks are retried, and the run finalizes exactly once. The live page polls progress and nudges the worker if it ever stalls (for example after a serverless timeout).
 
-## Run it offline in one minute (mock mode)
+## Run it offline in one minute (mock mode, for developers only)
+
+The live site never uses mock mode. It exists so anyone can run the code without API keys.
 
 No keys needed. Mock mode swaps in an in memory database (saved to `.spotlit-mock-db.json`), a deterministic mock of the Qloo API with the real response shapes, rule based agents and a one click sign in.
 
@@ -155,7 +166,7 @@ Open http://localhost:3000. The demo seeds itself the first time you open `/demo
    4. Project settings → General: add a Web app and copy `apiKey`, `authDomain`, `projectId` and `appId` into the `NEXT_PUBLIC_FIREBASE_*` variables.
    5. Project settings → Service accounts → Generate new private key: copy `project_id`, `client_email` and `private_key` into `FIREBASE_PROJECT_ID`, `FIREBASE_CLIENT_EMAIL` and `FIREBASE_PRIVATE_KEY` (keep the quotes and the `\n` sequences).
    6. Deploy rules and indexes: `npx firebase-tools login`, `npx firebase-tools use <project-id>`, then `npm run rules:deploy`.
-4. **Seed the demo:** `npm run seed:demo` builds Halftone House, a 60 persona baseline run, applies the strategist's measured fixes and runs the what if with the same personas. Add `-- --force` to rebuild it. On the Gemini free tier set `ARENA_LLM=concierge` or lower `LLM_CONCURRENCY` to stay inside rate limits.
+4. **Seed the demo:** `npm run seed:demo` builds Halftone House, a 60 persona baseline run, applies the strategist's measured fixes and runs the what if with the same personas. Add `-- --force` to rebuild it (on Windows PowerShell run `npx tsx scripts/seed-demo.ts --force`). On the Gemini free tier set `ARENA_LLM=concierge` or lower `LLM_CONCURRENCY` to stay inside rate limits.
 5. Optional: set `DEMO_OWNER_EMAIL` to your Google email to manage the demo venue after you sign in (useful for recording the live MCP call landing in its inbox).
 6. `npm run dev`.
 
@@ -165,7 +176,7 @@ Open http://localhost:3000. The demo seeds itself the first time you open `/demo
 2. Add every variable from `.env.local` under Project → Settings → Environment Variables. Leave `SPOTLIT_MOCK` and `NEXT_PUBLIC_SPOTLIT_MOCK` empty.
 3. Set `NEXT_PUBLIC_APP_URL=https://getspotlit.vercel.app` (or your URL).
 4. Deploy, then add the domain to Firebase Authorized domains.
-5. After judging starts, set `DEMO_MODE=1` so the demo is served from the Qloo cache.
+5. Keep `DEMO_MODE` empty so judges can scan new venues live. Use it only if the Qloo key ever stops working.
 
 ## Connect an agent
 
@@ -192,10 +203,13 @@ curl -X POST https://getspotlit.vercel.app/v/halftone-house/a2a -H 'content-type
 
 ## For judges
 
-- `/demo` has the full story with no login: baseline report, then fixes, then a measured lift with the same personas.
-- Every number with a **Qloo ↗** chip opens the exact Qloo query behind it.
-- `/concierge` is the consumer side and really asks venue agents over A2A.
-- Sign in with any Google account to scan a real venue.
+**Quick look, no login (30 seconds).** [getspotlit.vercel.app/demo](https://getspotlit.vercel.app/demo) is a finished example: a fictional venue, Halftone House, run against real Qloo data and real Williamsburg rivals. Baseline 1 of 60 picks, three card fixes, then 7 of 60 with the exact same personas.
+
+**Full live test (about 10 minutes).** Sign in with any Google account at [getspotlit.vercel.app](https://getspotlit.vercel.app), search or describe a venue, build its Taste DNA, run the arena with 24 personas, then apply the strategist's fixes and re run to measure the lift. Each account can start 4 arena runs a day.
+
+**Real agent test.** Connect any MCP client to `https://getspotlit.vercel.app/api/mcp` and ask for a venue, for example *"a dim listening bar with vinyl and natural wine in Williamsburg on Friday at 9 for two"*. Spotlit maps it to Qloo tags, asks venue agents over A2A and ranks them. The request shows up in that venue's agent inbox.
+
+Every number with a **Qloo ↗** chip opens the exact Qloo query behind it.
 
 ## Scripts
 
