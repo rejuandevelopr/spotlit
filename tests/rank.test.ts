@@ -111,3 +111,10 @@ describe("normalizeCity", () => {
     expect(normalizeCity("chicago, IL")).toBe("Chicago");
   });
 });
+
+describe("distinctTags generic variants", () => {
+  it("merges adjective and compound variants", () => {
+    const names = ["Bar", "Bar Setting", "Standard Bar Setting", "Upbeat Bar Setting", "Restobar", "Resto-Bar", "Informal Bar Setting", "Soul", "Soulful", "Cafe-Bar", "Club-like Bar"];
+    expect(distinctTags(names.map((name) => ({ name }))).map((t) => t.name)).toEqual(["Bar", "Restobar", "Soul", "Cafe-Bar", "Club-like Bar"]);
+  });
+});

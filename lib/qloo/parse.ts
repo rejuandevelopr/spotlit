@@ -42,7 +42,12 @@ const DINING_RE = /(specialty_dish|dish|cuisine|menu|drink|beverage)/i;
 // and crowd out the useful ones, so they are treated as noise everywhere (display and scoring).
 const STYLE_NAME_RE = /(^|[\s-])(vibes?|style|aesthetic|decor|ambiance|ambience|atmosphere)$/i;
 
-const STEM_FILLER = new Set(["like", "ish", "themed", "theme", "oriented", "inspired", "style", "styled", "setting", "environment", "interiors", "interior", "vibe", "vibes", "aesthetic", "music", "the", "a"]);
+const STEM_FILLER = new Set([
+  "like", "ish", "themed", "theme", "oriented", "inspired", "style", "styled", "setting", "environment", "interiors", "interior",
+  "vibe", "vibes", "aesthetic", "music", "the", "a",
+  // Generic adjectives Qloo puts in front of the same idea ("Standard Bar Setting", "Upbeat Bar Setting").
+  "standard", "upbeat", "informal", "casual", "classic", "modern", "trendy", "relaxed", "lively", "laid", "back", "fun", "popular",
+]);
 
 /** Root word of a tag, so "Nightclub-Like", "Nightclubish" and "Nightclub-themed" share the stem "nightclub". */
 export function tagStem(name: string): string {
@@ -53,6 +58,9 @@ export function tagStem(name: string): string {
     .split(/[^a-z0-9]+/)
     .filter(Boolean)
     .map((w) => (w.length > 5 && w.endsWith("ish") ? w.slice(0, -3) : w))
+    .map((w) => (w.length > 6 && w.endsWith("ful") ? w.slice(0, -3) : w))
+    // "Restobar" and "Resto-Bar" are one idea.
+    .map((w) => (w.length > 5 && w.endsWith("bar") ? w.slice(0, -3) : w))
     .filter((w) => !STEM_FILLER.has(w));
   return words[0] ?? name.toLowerCase();
 }

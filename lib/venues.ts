@@ -328,6 +328,12 @@ export async function buildProfile(venueId: string): Promise<TasteProfile> {
   }
 
   const allTags = tagsR.data;
+  const card = await latestCard(venueId);
+  // A described venue has no Qloo place behind it, so the owner's own mapped tags lead the cloud.
+  // They are real Qloo tags (from /v2/tags), shown first, then Qloo's related insight tags.
+  const ownTags: TagRef[] = venue.qlooEntityId
+    ? []
+    : (card?.facts.tasteTags ?? []).map((name, i) => ({ id: venue.descriptionTags[i] ?? `own:${name}`, name, affinity: 1 }));
   const dishes = allTags.filter((t) => tagKind(t) === "dining");
   const dining = dishes.slice(0, 3).map((t) => ({ id: t.id, name: t.name, type: "dining", affinity: t.affinity }));
   const nonDish = allTags.filter((t) => tagKind(t) !== "dining");
@@ -336,7 +342,7 @@ export async function buildProfile(venueId: string): Promise<TasteProfile> {
   // Hot neighbourhoods from the heatmap: top cells, named by nearest known rival or the city.
   const cells = heatR?.data ?? [];
   const profile: TasteProfile = {
-    tags: distinctTags([...nonDish, ...dishes]).slice(0, 20),
+    tags: distinctTags([...ownTags, ...nonDish, ...dishes]).slice(0, 20),
     demographics: demoR?.data.bands ?? [],
     genderSkew: demoR?.data.gender ?? null,
     affinities: {
@@ -360,7 +366,6 @@ export async function buildProfile(venueId: string): Promise<TasteProfile> {
   };
   await db().set(P.taste(venueId), { ...profile });
 
-  const card = await latestCard(venueId);
   const update: Record<string, unknown> = {
     // Every venue is represented the same way: its top Qloo insight tags.
     qlooTags: tasteOnly.slice(0, 20),
